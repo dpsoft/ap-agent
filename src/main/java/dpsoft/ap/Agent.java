@@ -2,7 +2,7 @@ package dpsoft.ap;
 
 import com.sun.net.httpserver.HttpServer;
 import dpsoft.ap.config.AgentConfiguration;
-import dpsoft.ap.route.AsyncProfilerHandler;
+import dpsoft.ap.handler.AsyncProfilerHandler;
 import one.profiler.AsyncProfilerLoader;
 import org.tinylog.Logger;
 

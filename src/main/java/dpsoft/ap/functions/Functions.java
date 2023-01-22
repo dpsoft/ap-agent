@@ -3,7 +3,7 @@ package dpsoft.ap.functions;
 import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
-import java.util.LinkedHashMap;
+import java.util.HashMap;
 import java.util.Map;
 
 public class Functions {
@@ -14,7 +14,7 @@ public class Functions {
      * @return a map of query parameters
      */
     public static Map<String, String> splitQueryParams(URI uri) throws UnsupportedEncodingException {
-        final var queryPairs = new LinkedHashMap<String, String>();
+        final var queryPairs = new HashMap<String, String>();
         final var query = uri.getQuery();
         final var  pairs = query.split("&");
 

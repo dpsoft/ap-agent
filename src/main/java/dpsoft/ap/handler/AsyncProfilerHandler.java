@@ -1,4 +1,4 @@
-package dpsoft.ap.route;
+package dpsoft.ap.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
@@ -11,7 +11,6 @@ import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
-import java.time.Duration;
 
 public class AsyncProfilerHandler implements HttpHandler {
     private final AsyncProfiler asyncProfiler;
