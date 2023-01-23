@@ -3,19 +3,19 @@ package dpsoft.ap;
 import dpsoft.ap.command.Command;
 import dpsoft.ap.config.AgentConfiguration;
 import io.vavr.control.Try;
-import one.converter.Arguments;
-import one.converter.CollapsedStacks;
-import one.converter.FlameGraph;
-import one.converter.jfr2flame;
+import one.converter.*;
 import one.jfr.JfrReader;
 import one.profiler.AsyncProfiler;
 import org.tinylog.Logger;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.util.zip.GZIPOutputStream;
+
 import static io.vavr.API.*;
 import static io.vavr.Predicates.*;
-
-import java.io.*;
-import java.util.zip.GZIPOutputStream;
 
 public class ProfilerExecutor {
 
@@ -48,6 +48,7 @@ public class ProfilerExecutor {
         var result = Match(output).of(
                 Case($(is("pprof")), () -> toPProf(out)),
                 Case($(is("jfr")), () ->  toJFR(out)),
+                Case($(is("nflx")), () ->  toFlameScope(out)),
                 Case($(isIn("flamegraph", "flame", "collapsed")),(type) -> toFlame(type, out)),
                 Case($(isNull()), () -> toJFR(out)));
 
@@ -78,7 +79,15 @@ public class ProfilerExecutor {
     private Try<Void> toPProf(OutputStream out) {
         return Try.run(() -> {
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
-                new one.converter.jfr2pprof(reader).dump(outputStream);
+                new jfr2pprof(reader).dump(outputStream);
+            }
+        });
+    }
+
+    private Try<Void> toFlameScope(OutputStream out) {
+        return Try.run(() -> {
+            try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
+                new jfr2nflx(reader).dump(outputStream);
             }
         });
     }
