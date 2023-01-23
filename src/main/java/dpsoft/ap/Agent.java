@@ -1,29 +1,36 @@
 package dpsoft.ap;
 
-import com.sun.net.httpserver.HttpServer;
 import dpsoft.ap.config.AgentConfiguration;
 import dpsoft.ap.handler.AsyncProfilerHandler;
 import one.profiler.AsyncProfilerLoader;
-import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.lang.instrument.Instrumentation;
-import java.net.InetSocketAddress;
 
 public class Agent {
     public static void premain(String args, Instrumentation inst) throws IOException {
         final var configuration = AgentConfiguration.instance();
         final var profiler = AsyncProfilerLoader.load();
-        final var server = HttpServer.create(new InetSocketAddress(configuration.serverConfig.host, configuration.serverConfig.port), 0);
 
-        server.createContext("/", new AsyncProfilerHandler(profiler, configuration));
-        server.start();
-
-        Logger.info("AP Agent started in host and port: {}:{}", configuration.serverConfig.host, configuration.serverConfig.port);
+        Server.with(configuration.server, (server) -> {
+            final var profilerHandler = new AsyncProfilerHandler(profiler, configuration);
+            server.createContext("/profiler/profile", profilerHandler);
+        });
     }
+
 
     public static void main(String[] args) throws IOException {
         System.out.println("main");
         premain("", null);
+
+        //heavy cpu consume task
+        factorial(10000);
+    }
+
+    static int factorial(int n){
+        if (n == 1)
+            return 1;
+        else
+            return(n * factorial(n-1));
     }
 }

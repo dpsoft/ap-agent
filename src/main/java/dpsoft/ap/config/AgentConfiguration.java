@@ -10,17 +10,17 @@ import org.tinylog.Logger;
 public final class AgentConfiguration {
     private static final AgentConfiguration INSTANCE = new AgentConfiguration(loadConfig());
 
-    public final ServerConfig serverConfig;
+    public final Server server;
 
     private AgentConfiguration(Config config) {
-        this.serverConfig = new ServerConfig(config);
+        this.server = new Server(config);
     }
 
-    public static class ServerConfig {
+    public static class Server {
         public final int port;
         public final String host;
 
-        public ServerConfig(Config config) {
+        public Server(Config config) {
             this.port = config.getInt("server.port");
             this.host = config.getString("server.host");
         }

@@ -34,11 +34,12 @@ public class AsyncProfilerHandler implements HttpHandler {
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
 
             var queryParamsMap = Functions.splitQueryParams(exchange.getRequestURI());
+            var command = Command.from(queryParamsMap);
 
             ProfilerExecutor
                     .with(asyncProfiler)
-                    .run(Command.from(queryParamsMap))
-                    .onSuccess(p -> p.pipeTo(exchange.getResponseBody()))
+                    .run(command)
+                    .onSuccess(p -> p.pipeTo(exchange.getResponseBody(), command.output))
                     .onFailure(cause -> Logger.error(cause, "It has not been possible to execute the profiler command."));
         }
     }
