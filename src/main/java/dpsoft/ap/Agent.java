@@ -19,7 +19,7 @@ public class Agent {
     }
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("main");
         premain("", null);
 
@@ -27,10 +27,8 @@ public class Agent {
         factorial(10000);
     }
 
-    static int factorial(int n){
-        if (n == 1)
-            return 1;
-        else
-            return(n * factorial(n-1));
+    static int factorial(int n) throws InterruptedException {
+       while (true) {
+       }
     }
 }

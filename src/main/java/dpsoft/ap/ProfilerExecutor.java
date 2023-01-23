@@ -1,28 +1,34 @@
 package dpsoft.ap;
 
 import dpsoft.ap.command.Command;
+import dpsoft.ap.config.AgentConfiguration;
 import io.vavr.control.Try;
 import one.converter.Arguments;
+import one.converter.CollapsedStacks;
 import one.converter.FlameGraph;
 import one.converter.jfr2flame;
 import one.jfr.JfrReader;
 import one.profiler.AsyncProfiler;
 import org.tinylog.Logger;
 
+import static io.vavr.API.*;
+import static io.vavr.Predicates.*;
+
 import java.io.*;
-import java.time.Duration;
 import java.util.zip.GZIPOutputStream;
 
 public class ProfilerExecutor {
 
     private final AsyncProfiler profiler;
+    private final AgentConfiguration configuration;
     private final File file;
 
-    public static ProfilerExecutor with(AsyncProfiler profiler) {
-        return new ProfilerExecutor(profiler);
+    public static ProfilerExecutor with(AsyncProfiler profiler, AgentConfiguration configuration) {
+        return new ProfilerExecutor(profiler, configuration);
     }
 
-    private ProfilerExecutor(AsyncProfiler profiler) {
+    private ProfilerExecutor(AsyncProfiler profiler, AgentConfiguration configuration) {
+        this.configuration = configuration;
         this.profiler = profiler;
         this.file = Try.of(() -> File.createTempFile("ap-agent", ".jfr"))
                 .onSuccess(File::deleteOnExit)
@@ -35,41 +41,45 @@ public class ProfilerExecutor {
             Thread.sleep(command.getDuration().toMillis());
             profiler.stop();
             return this;
-
-//            pipeTo(out, command.output);
         });
     }
 
-    public Try<Void> pipeTo(OutputStream out, String output) {
-        if (output.equals("pprof")) {
-               return Try.run(() -> {
-                   try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
-                       new one.converter.jfr2pprof(reader).dump(outputStream);
-                   }
-                   file.delete();
-               });
-        }
-        if (output.equals("flamegraph")) {
-            return Try.run(() -> {
-                var args = new one.converter.Arguments();
-                var flame = new FlameGraph(args);
+    public void pipeTo(OutputStream out, String output) {
+        var result = Match(output).of(
+                Case($(is("pprof")), () -> toPProf(out)),
+                Case($(isIn("flamegraph", "flame", "collapsed")),(type) -> toFlame(type, out)),
+                Case($(is("jrf")), () ->  toJFR(out)),
+                Case($(isNull()), () -> toJFR(out)));
 
-                try (var reader = new JfrReader(file.getAbsolutePath())) {
-                    new jfr2flame(reader, args).convert(flame);
-                }
+        result.andFinally(file::delete);
+        result.onFailure(cause -> Logger.error(cause, "It has not been possible to pipe the profiler result to the output stream."));
+    }
 
-                try (var outputStream = new PrintStream(out)) {
-                    flame.dump(outputStream);
-                }
-                file.delete();
-            });
-        }
-        //default output is jfr
+    private Try<Void> toJFR(OutputStream out){
         return Try.run(() -> {
             try (var fileReader = new FileInputStream(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
                 fileReader.transferTo(outputStream);
             }
-            file.delete();
+        });
+    }
+
+    private Try<Void> toFlame(String type, OutputStream out) {
+        return Try.run(() -> {
+            final var args = new Arguments("--cpu", "--lines");
+            final var flame = "collapsed".equals(type) ? new CollapsedStacks(args) : new FlameGraph(args);
+
+            try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new PrintStream(out)) {
+                new jfr2flame(reader, args).convert(flame);
+                flame.dump(outputStream);
+            }
+        });
+    }
+
+    private Try<Void> toPProf(OutputStream out) {
+        return Try.run(() -> {
+            try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
+                new one.converter.jfr2pprof(reader).dump(outputStream);
+            }
         });
     }
 }
