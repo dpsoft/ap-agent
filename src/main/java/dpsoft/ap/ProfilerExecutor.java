@@ -20,14 +20,14 @@ import java.util.zip.GZIPOutputStream;
 public class ProfilerExecutor {
 
     private final AsyncProfiler profiler;
-    private final AgentConfiguration configuration;
+    private final AgentConfiguration.Handler configuration;
     private final File file;
 
-    public static ProfilerExecutor with(AsyncProfiler profiler, AgentConfiguration configuration) {
+    public static ProfilerExecutor with(AsyncProfiler profiler, AgentConfiguration.Handler configuration) {
         return new ProfilerExecutor(profiler, configuration);
     }
 
-    private ProfilerExecutor(AsyncProfiler profiler, AgentConfiguration configuration) {
+    private ProfilerExecutor(AsyncProfiler profiler, AgentConfiguration.Handler configuration) {
         this.configuration = configuration;
         this.profiler = profiler;
         this.file = Try.of(() -> File.createTempFile("ap-agent", ".jfr"))
@@ -47,8 +47,8 @@ public class ProfilerExecutor {
     public void pipeTo(OutputStream out, String output) {
         var result = Match(output).of(
                 Case($(is("pprof")), () -> toPProf(out)),
+                Case($(is("jfr")), () ->  toJFR(out)),
                 Case($(isIn("flamegraph", "flame", "collapsed")),(type) -> toFlame(type, out)),
-                Case($(is("jrf")), () ->  toJFR(out)),
                 Case($(isNull()), () -> toJFR(out)));
 
         result.andFinally(file::delete);

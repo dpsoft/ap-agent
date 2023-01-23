@@ -12,12 +12,11 @@ public class Agent {
         final var configuration = AgentConfiguration.instance();
         final var profiler = AsyncProfilerLoader.load();
 
-        Server.with(configuration.server, (server) -> {
-            final var profilerHandler = new AsyncProfilerHandler(profiler, configuration);
-            server.createContext("/profiler/profile", profilerHandler);
+        Server.with(configuration, (server) -> {
+            final var profilerHandler = new AsyncProfilerHandler(profiler, configuration.handler);
+            server.createContext("/", profilerHandler);
         });
     }
-
 
     public static void main(String[] args) throws IOException, InterruptedException {
         System.out.println("main");

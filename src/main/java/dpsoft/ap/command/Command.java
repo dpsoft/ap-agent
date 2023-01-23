@@ -1,5 +1,6 @@
 package dpsoft.ap.command;
 
+import dpsoft.ap.config.AgentConfiguration;
 import one.profiler.Events;
 
 import java.time.Duration;
@@ -13,14 +14,19 @@ public class Command {
     public final String output;
 
 
-    public static Command from(Map<String, String> params) {
-        var eventType = params.getOrDefault("event", Events.CPU);
-        var duration = getDuration(params);
-        var interval = params.getOrDefault("interval", "10000000");
-        var output = params.getOrDefault("output", "jfr");
-        var file = params.getOrDefault("file", "profile.jfr");
+    public static Command from(Map<String, String> params, AgentConfiguration.Handler configuration) {
+        final var eventType = params.getOrDefault("event", Events.CPU);
+        final var duration = getDuration(params);
+        final var output = getOutput(params, configuration);
+        final var interval = params.get("interval");
+        final var file = params.getOrDefault("file", "profile.jfr");
 
         return new Command(eventType, duration, interval, file, output);
+    }
+
+    private static String getOutput(Map<String, String> params, AgentConfiguration.Handler configuration) {
+        if(configuration.isGoMode()) return "pprof";
+        return params.getOrDefault("output", "jfr");
     }
 
     private static Duration getDuration(Map<String, String> params) {
@@ -38,8 +44,11 @@ public class Command {
     }
 
     public String asFormatString(String absolutePath) {
-//        return String.format("start,jfr,event=%s,interval=%s,file=%s", eventType, interval, absolutePath);
-        return String.format("start,jfr,event=%s,file=%s", eventType, absolutePath);
+        final var sb =  new StringBuilder().append("start,jfr,event=").append(eventType);
+        if (interval != null) sb.append(",interval=").append(interval);
+        sb.append(",file=").append(absolutePath);
+
+        return sb.toString();
     }
 
     public Duration getDuration() {

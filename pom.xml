@@ -48,15 +48,33 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <artifactSet>
+                               <excludes>
+                                   <exclude>org.codehaus.mojo</exclude>
+                                </excludes>
+                            </artifactSet>
+                            <createDependencyReducedPom>false</createDependencyReducedPom>
                             <transformers>
                                 <transformer implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
-                                        <Main-Class>dpsoft.ap.Agent</Main-Class>
                                         <Premain-Class>dpsoft.ap.Agent</Premain-Class>
                                         <Agent-Class>dpsoft.ap.Agent</Agent-Class>
                                     </manifestEntries>
                                 </transformer>
+                                <transformer implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
                             </transformers>
+                            <finalName>${project.artifactId}-${project.version}-final</finalName>
+                            <filters>
+                                <filter>
+                                    <artifact>*:*</artifact>
+                                    <excludes>
+                                        <exclude>META-INF/maven/**</exclude>
+                                        <exclude>META-INF/*.SF</exclude>
+                                        <exclude>META-INF/*.DSA</exclude>
+                                        <exclude>META-INF/*.RSA</exclude>
+                                    </excludes>
+                                </filter>
+                            </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>com.typesafe.config</pattern>
@@ -69,9 +87,10 @@
                                 <relocation>
                                     <pattern>org.tinylog</pattern>
                                     <shadedPattern>dpsoft.ap.libs.org.tinylog</shadedPattern>
-<!--                                    <excludes>-->
-<!--                                        <exclude>'META-INF/.*'</exclude>-->
-<!--                                    </excludes>-->
+                                </relocation>
+                                <relocation>
+                                    <pattern>one</pattern>
+                                    <shadedPattern>dpsoft.ap.libs.one</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>dev.dirs</pattern>

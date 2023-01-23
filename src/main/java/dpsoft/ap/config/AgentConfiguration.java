@@ -11,9 +11,11 @@ public final class AgentConfiguration {
     private static final AgentConfiguration INSTANCE = new AgentConfiguration(loadConfig());
 
     public final Server server;
+    public final Handler handler;
 
     private AgentConfiguration(Config config) {
         this.server = new Server(config);
+        this.handler = new Handler(config);
     }
 
     public static class Server {
@@ -24,6 +26,25 @@ public final class AgentConfiguration {
             this.port = config.getInt("server.port");
             this.host = config.getString("server.host");
         }
+    }
+
+    public static class Handler {
+
+        public final boolean goMode;
+        public final String goContext;
+        public final String context;
+
+        public Handler(Config config) {
+            this.goMode = config.getBoolean("handler.go-mode");
+            this.goContext = config.getString("handler.go-context");
+            this.context = config.getString("handler.context");
+        }
+
+        public boolean isGoMode() {
+            return goMode;
+        }
+
+        public String context() { return isGoMode() ? goContext : context;}
     }
 
 
