@@ -15,7 +15,7 @@ public class Command {
 
 
     public static Command from(Map<String, String> params, AgentConfiguration.Handler configuration) {
-        final var eventType = params.getOrDefault("event", Events.CPU);
+        final var eventType = params.getOrDefault("event", Events.ITIMER);
         final var duration = getDuration(params);
         final var output = getOutput(params, configuration);
         final var interval = params.get("interval");

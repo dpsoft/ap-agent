@@ -26,15 +26,16 @@ public class AsyncProfilerHandler implements HttpHandler {
         final var path = exchange.getRequestURI().getPath();
 
         if (!path.equals(configuration.context())) {
-            exchange.sendResponseHeaders(404, 0L);
+            exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0L);
             exchange.close();
         } else {
             exchange.getRequestBody().close();
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
+
             if(configuration.isGoMode()) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
 
-            var queryParamsMap = Functions.splitQueryParams(exchange.getRequestURI());
-            var command = Command.from(queryParamsMap, configuration);
+            final var queryParamsMap = Functions.splitQueryParams(exchange.getRequestURI());
+            final var command = Command.from(queryParamsMap, configuration);
 
             ProfilerExecutor
                     .with(asyncProfiler, configuration)

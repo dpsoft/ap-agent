@@ -16,7 +16,7 @@ public class Functions {
     public static Map<String, String> splitQueryParams(URI uri) throws UnsupportedEncodingException {
         final var queryPairs = new HashMap<String, String>();
         final var query = uri.getQuery();
-        final var  pairs = query.split("&");
+        final var pairs = query.split("&");
 
         for (String pair : pairs) {
             final int idx = pair.indexOf("=");
