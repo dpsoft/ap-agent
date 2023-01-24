@@ -48,7 +48,7 @@ Running the script with the `cpu` event and `60 second` duration, we can see the
 ```shell
 ./loop.sh cpu 60 profiling_results
 
-Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:17:24  took 60 seconds.
+Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:17:24 took 60 seconds.
 Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:18:24 took 60 seconds.
 ```
 
