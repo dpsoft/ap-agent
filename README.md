@@ -6,7 +6,7 @@ Async Profiler Agent is a minimal Java agent that allows you to proxy to [Async 
 ## Usage
 To use the `AP-Agent`, simply add it to the JVM startup. The agent exposes a REST API for profiling with the following endpoint: `http://localhost:8080/profiler/profile`.
 
-```bash
+```shell
 java -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
 ```
 
@@ -21,10 +21,41 @@ For example, to profile CPU usage for 30 seconds and output the results in Flame
 ![image](https://user-images.githubusercontent.com/2567525/214323977-af9a4c92-8cbc-48dd-a0c6-f1f7a37122ee.png)
 
 
+## Continuous Profiling a la Bash
+We can create a simple bash script to continuously profile our application and output the results to a file. 
+
+```bash
+#!/bin/bash
+
+event=${1:-itimer}
+profiling_duration=${2:-30}
+results_folder=${3:-profiling_results}
+
+mkdir -p $results_folder
+
+while true; do
+    timestamp=$(date +%Y-%m-%d_%H-%M-%S)
+    output_file="${event}_profile_$timestamp.html"
+    start_time=$(date +%s)
+    curl -s "http://localhost:8080/profiler/profile?event=$event&output=flame&duration=$profiling_duration" -o "$results_folder/$output_file"
+    end_time=$(date +%s)
+    duration=$((end_time - start_time))
+    echo "Profile saved to $results_folder/$output_file at $(date) took $duration seconds."
+done
+```
+Running the script with the `cpu` event and `60 second` duration, we can see the results in the `profiling_results` folder.
+
+```shell
+./loop.sh cpu 60 profiling_results
+
+Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html took 60 seconds.
+Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html took 60 seconds.
+```
+
 ## Go Mode
 The agent also supports a `GO`(lang) mode, which exposes the `/debug/pprof/profile` endpoint. This is where we can use the go [pprof] tools.
 
-```bash
+```shell
 java -Dap-agent.handler.go-mode=true -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
 
 go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30  
@@ -34,9 +65,10 @@ go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30
 
 ![image](https://user-images.githubusercontent.com/2567525/214325045-0907e055-8f17-45cf-9f57-c2b52c366854.png)
 
-## Contribution
-We welcome contributions to this project. If you would like to contribute, please fork the repository and submit a pull request.
 
+
+# License
+This code base is available ander the Apache License, version 2.
 
 [AP-Loader]: https://github.com/jvm-profiling-tools/ap-loader
 [Async Profiler]: https://github.com/jvm-profiling-tools/async-profiler
