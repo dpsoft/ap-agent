@@ -25,7 +25,11 @@ The agent also supports a `GO`(lang) mode, which exposes the `/debug/pprof/profi
 
 ```bash
 java -Dap-agent.handler.go-mode=true -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
+
+go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile\?seconds\=30  
 ```
+
+[img]
     
 
 ## Contribution
