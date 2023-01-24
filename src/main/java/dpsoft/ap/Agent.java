@@ -17,17 +17,4 @@ public class Agent {
             server.createContext("/", profilerHandler);
         });
     }
-
-    public static void main(String[] args) throws IOException, InterruptedException {
-        System.out.println("main");
-        premain("", null);
-
-        //heavy cpu consume task
-        factorial(10000);
-    }
-
-    static int factorial(int n) throws InterruptedException {
-       while (true) {
-       }
-    }
 }

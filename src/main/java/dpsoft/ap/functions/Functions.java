@@ -19,7 +19,7 @@ public class Functions {
         final var  pairs = query.split("&");
 
         for (String pair : pairs) {
-            int idx = pair.indexOf("=");
+            final int idx = pair.indexOf("=");
             final var key = pair.substring(0, idx);
             final var value = pair.substring(idx + 1);
             queryPairs.put(URLDecoder.decode(key, "UTF-8"), URLDecoder.decode(value, "UTF-8"));

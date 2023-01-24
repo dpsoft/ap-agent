@@ -24,6 +24,14 @@ public class Command {
         return new Command(eventType, duration, interval, file, output);
     }
 
+    private Command(String eventType, Duration durationSeconds, String interval, String file, String output) {
+        this.eventType = eventType;
+        this.durationSeconds = durationSeconds;
+        this.interval = interval;
+        this.file = file;
+        this.output = output;
+    }
+
     private static String getOutput(Map<String, String> params, AgentConfiguration.Handler configuration) {
         if(configuration.isGoMode()) return "pprof";
         return params.getOrDefault("output", "jfr");
@@ -35,19 +43,10 @@ public class Command {
         return Duration.ofSeconds(Long.parseLong("30")); // default value
     }
 
-    private Command(String eventType, Duration durationSeconds, String interval, String file, String output) {
-        this.eventType = eventType;
-        this.durationSeconds = durationSeconds;
-        this.interval = interval;
-        this.file = file;
-        this.output = output;
-    }
-
     public String asFormatString(String absolutePath) {
         final var sb =  new StringBuilder().append("start,jfr,event=").append(eventType);
         if (interval != null) sb.append(",interval=").append(interval);
         sb.append(",file=").append(absolutePath);
-
         return sb.toString();
     }
 

@@ -45,7 +45,7 @@ public class ProfilerExecutor {
     }
 
     public void pipeTo(OutputStream out, String output) {
-        var result = Match(output).of(
+        final var result = Match(output).of(
                 Case($(is("pprof")), () -> toPProf(out)),
                 Case($(is("jfr")), () ->  toJFR(out)),
                 Case($(is("nflx")), () ->  toFlameScope(out)),
