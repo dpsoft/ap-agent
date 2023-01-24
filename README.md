@@ -12,7 +12,7 @@ java -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
 
 The endpoint accepts the following parameters:
 
-* `event`: The type of event to profile (e.g. `cpu`, `itime`, `wall`)
+* `event`: The type of event to profile (e.g. `cpu`, `itimer`, `wall`)
 * `output`: The desired output format (e.g. `flamegraph`, `jfr`, `pprof`)
 * `duration`: The length of time to profile for (in seconds)
 
@@ -65,6 +65,12 @@ go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30
 
 ![image](https://user-images.githubusercontent.com/2567525/214325045-0907e055-8f17-45cf-9f57-c2b52c366854.png)
 
+
+# To-do
+-[ ] Release to Maven Central
+-[ ] Improve documentation and add more usage examples 
+-[ ] Add support for more profiling modes
+-[ ] Add support for Context ID
 
 
 # License
