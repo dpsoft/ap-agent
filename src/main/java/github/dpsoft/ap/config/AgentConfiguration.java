@@ -1,4 +1,4 @@
-package dpsoft.ap.config;
+package github.dpsoft.ap.config;
 
 
 import com.typesafe.config.Config;
@@ -12,10 +12,12 @@ public final class AgentConfiguration {
 
     public final Server server;
     public final Handler handler;
+    public final boolean showBanner;
 
     private AgentConfiguration(Config config) {
         this.server = new Server(config);
         this.handler = new Handler(config);
+        this.showBanner = config.getBoolean("show-banner");
     }
 
     public static class Server {
@@ -45,6 +47,10 @@ public final class AgentConfiguration {
         }
 
         public String context() { return isGoMode() ? goContext : context;}
+    }
+
+    public boolean showBanner() {
+        return this.showBanner;
     }
 
 

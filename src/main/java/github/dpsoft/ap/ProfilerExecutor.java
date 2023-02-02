@@ -1,10 +1,13 @@
-package dpsoft.ap;
+package github.dpsoft.ap;
 
-import dpsoft.ap.command.Command;
-import dpsoft.ap.config.AgentConfiguration;
+import github.dpsoft.ap.command.Command;
+import github.dpsoft.ap.config.AgentConfiguration;
+import github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
+import github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
 import io.vavr.control.Try;
 import one.converter.*;
 import one.jfr.JfrReader;
+import one.jfr.event.ExecutionSample;
 import one.profiler.AsyncProfiler;
 import org.tinylog.Logger;
 
@@ -49,7 +52,7 @@ public class ProfilerExecutor {
                 Case($(is("pprof")), () -> toPProf(out)),
                 Case($(is("jfr")), () ->  toJFR(out)),
                 Case($(is("nflx")), () ->  toFlameScope(out)),
-                Case($(isIn("flamegraph", "flame", "collapsed")),(type) -> toFlame(type, out)),
+                Case($(isIn("flamegraph", "flame", "collapsed", "hotcold")),(type) -> toFlame(type, out)),
                 Case($(isNull()), () -> toJFR(out)));
 
         result.andFinally(file::delete);
@@ -65,6 +68,7 @@ public class ProfilerExecutor {
     }
 
     private Try<Void> toFlame(String type, OutputStream out) {
+        if("hotcold".equals(type)) return toHotColdFlame(out);
         return Try.run(() -> {
             final var args = new Arguments("--cpu", "--lines");
             final var flame = "collapsed".equals(type) ? new CollapsedStacks(args) : new FlameGraph(args);
@@ -88,6 +92,16 @@ public class ProfilerExecutor {
         return Try.run(() -> {
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
                 new jfr2nflx(reader).dump(outputStream);
+            }
+        });
+    }
+
+    private Try<Void> toHotColdFlame(OutputStream out) {
+        return Try.run(() -> {
+            final var flame = new HotColdFlameGraph("--threads", "--lines", "--hotcold");
+            try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new PrintStream(out)) {
+                new jfr2hotcoldflame(reader).convert(flame, true, false, true, false, ExecutionSample.class);
+                flame.dump(outputStream);
             }
         });
     }

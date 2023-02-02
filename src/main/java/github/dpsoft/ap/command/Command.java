@@ -1,10 +1,11 @@
-package dpsoft.ap.command;
+package github.dpsoft.ap.command;
 
-import dpsoft.ap.config.AgentConfiguration;
+import github.dpsoft.ap.config.AgentConfiguration;
 import one.profiler.Events;
 
 import java.time.Duration;
 import java.util.Map;
+
 
 public class Command {
     public final String eventType;
@@ -13,11 +14,10 @@ public class Command {
     public final String file;
     public final String output;
 
-
     public static Command from(Map<String, String> params, AgentConfiguration.Handler configuration) {
-        final var eventType = params.getOrDefault("event", Events.ITIMER);
-        final var duration = getDuration(params);
         final var output = getOutput(params, configuration);
+        final var eventType = getEventType(params, output);
+        final var duration = getDuration(params);
         final var interval = params.get("interval");
         final var file = params.getOrDefault("file", "profile.jfr");
 
@@ -35,6 +35,11 @@ public class Command {
     private static String getOutput(Map<String, String> params, AgentConfiguration.Handler configuration) {
         if(configuration.isGoMode()) return "pprof";
         return params.getOrDefault("output", "jfr");
+    }
+
+    private static String getEventType(Map<String, String> params, String output) {
+        if ("hotcold".equals(output)) return Events.WALL;
+        return params.getOrDefault("event", Events.ITIMER);
     }
 
     private static Duration getDuration(Map<String, String> params) {

@@ -1,11 +1,11 @@
-package dpsoft.ap.handler;
+package github.dpsoft.ap.handler;
 
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-import dpsoft.ap.ProfilerExecutor;
-import dpsoft.ap.command.Command;
-import dpsoft.ap.config.AgentConfiguration;
-import dpsoft.ap.functions.Functions;
+import github.dpsoft.ap.ProfilerExecutor;
+import github.dpsoft.ap.command.Command;
+import github.dpsoft.ap.config.AgentConfiguration;
+import github.dpsoft.ap.functions.Functions;
 import one.profiler.AsyncProfiler;
 import org.tinylog.Logger;
 

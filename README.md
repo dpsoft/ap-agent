@@ -13,7 +13,7 @@ java -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
 The endpoint accepts the following parameters:
 
 * `event`: The type of event to profile (e.g. `cpu`, `itimer`, `wall`)
-* `output`: The desired output format (e.g. `flamegraph`, `jfr`, `pprof`)
+* `output`: The desired output format (e.g. `flamegraph`, `hotcold` `jfr`, `pprof`)
 * `duration`: The length of time to profile for (in seconds)
 
 For example, to profile CPU usage for 30 seconds and output the results in Flamegraph format, the following API call would be used: `http://localhost:8080/profiler/profile?event=cpu&output=flame&duration=30`
