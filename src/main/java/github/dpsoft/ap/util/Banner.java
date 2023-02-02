@@ -18,7 +18,7 @@ public class Banner {
             while (padding.length() < version.length()) { padding.append(" ");}
 
             final var substitutor = new StrSubstitutor(Map.of("message", green("::: Async Profiler Agent :::") + version + padding));
-            final var banner = substitutor.replace(new String(Files.readAllBytes(Paths.get(Banner.class.getResource("/banner.txt").getPath()))));
+            final var banner = substitutor.replace(new String(Files.readAllBytes(Paths.get(Thread.currentThread().getContextClassLoader().getResource("banner.txt").getPath()))));
             final var scanner = new Scanner(banner);
 
             int count = 0;
@@ -31,6 +31,7 @@ public class Banner {
                 }
                 System.out.println(line);
             }
+            System.out.println();
         }
     }
 
