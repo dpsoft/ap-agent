@@ -3,8 +3,6 @@ package github.dpsoft.ap.util;
 import github.dpsoft.ap.config.AgentConfiguration;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -18,20 +16,23 @@ public class Banner {
             while (padding.length() < version.length()) { padding.append(" ");}
 
             final var substitutor = new StrSubstitutor(Map.of("message", green("::: Async Profiler Agent :::") + version + padding));
-            final var banner = substitutor.replace(new String(Files.readAllBytes(Paths.get(Thread.currentThread().getContextClassLoader().getResource("banner.txt").getPath()))));
-            final var scanner = new Scanner(banner);
 
-            int count = 0;
-            while (scanner.hasNextLine()) {
-                count++;
-                final var line = scanner.nextLine();
-                if (count <= 4) { // red the first 4 lines
-                    System.out.println(red(line));
-                    continue;
+            try (var stream = Banner.class.getResourceAsStream("/banner.txt")) {
+                final var banner = substitutor.replace(new String(stream.readAllBytes()));
+                final var scanner = new Scanner(banner);
+
+                int count = 0;
+                while (scanner.hasNextLine()) {
+                    count++;
+                    final var line = scanner.nextLine();
+                    if (count <= 4) { // red the first 4 lines
+                        System.out.println(red(line));
+                        continue;
+                    }
+                    System.out.println(line);
                 }
-                System.out.println(line);
+                System.out.println();
             }
-            System.out.println();
         }
     }
 
