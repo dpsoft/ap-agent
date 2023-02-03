@@ -1,4 +1,4 @@
-package dpsoft.ap.functions;
+package io.github.dpsoft.ap.functions;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URI;

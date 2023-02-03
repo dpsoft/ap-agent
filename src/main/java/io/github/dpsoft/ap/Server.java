@@ -1,7 +1,7 @@
-package dpsoft.ap;
+package io.github.dpsoft.ap;
 
 import com.sun.net.httpserver.HttpServer;
-import dpsoft.ap.config.AgentConfiguration;
+import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.vavr.control.Try;
 import org.tinylog.Logger;
 
