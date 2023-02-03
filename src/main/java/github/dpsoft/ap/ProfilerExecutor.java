@@ -98,7 +98,7 @@ public class ProfilerExecutor {
 
     private Try<Void> toHotColdFlame(OutputStream out) {
         return Try.run(() -> {
-            final var flame = new HotColdFlameGraph("--threads", "--lines", "--hotcold");
+            final var flame = new HotColdFlameGraph("--threads", "--lines", "--hotcold", "--title", "HotCold Flame Graph");
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new PrintStream(out)) {
                 new jfr2hotcoldflame(reader).convert(flame, true, false, true, false, ExecutionSample.class);
                 flame.dump(outputStream);
