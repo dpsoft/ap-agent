@@ -26,4 +26,10 @@ public class Functions {
         }
         return queryPairs;
     }
+
+    public static String padString(String str, int length) {
+        final var strBuilder = new StringBuilder(str);
+        for (var i = strBuilder.length(); i <= length; i++) { strBuilder.append(" "); }
+        return strBuilder.toString();
+    }
 }
