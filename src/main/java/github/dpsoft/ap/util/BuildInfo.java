@@ -10,19 +10,19 @@ public final class BuildInfo {
     private static final BuildInfo INSTANCE = new BuildInfo(loadProperties());
 
     private final String version;
-    private final String timestamp;
+    private final String apLoaderVersion;
 
     private BuildInfo(Properties properties) {
         this.version = properties.getProperty("version");
-        this.timestamp = properties.getProperty("timestamp");
+        this.apLoaderVersion = properties.getProperty("apLoaderVersion");
     }
 
     public static String version() {
         return BuildInfo.INSTANCE.version;
     }
 
-    public static String timestamp() {
-        return BuildInfo.INSTANCE.timestamp;
+    public static String apLoaderVersion() {
+        return BuildInfo.INSTANCE.apLoaderVersion;
     }
 
     private static Properties loadProperties() {

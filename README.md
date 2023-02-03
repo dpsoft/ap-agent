@@ -1,4 +1,7 @@
 # AP-Agent
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.dpsoft/ap-agent)](https://search.maven.org/search?q=ap-agent)
+[![Maven CI/CD](https://github.com/dpsoft/ap-agent/actions/workflows/build.yml/badge.svg)](https://github.com/dpsoft/ap-agent/actions/workflows/build.yml)
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 Async Profiler Agent is a minimal Java agent that allows you to proxy to [Async Profiler] via a minimal REST API, making it easy to profile your applications. Simply add it to the start of the JVM and as it uses the [AP-Loader], there is no need for Async Profiler up front.
 
@@ -67,7 +70,7 @@ go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30
 
 
 ## TODO
-- [ ] Release to Maven Central
+- [x] Release to Maven Central
 - [ ] Improve documentation and add more usage examples 
 - [ ] Add support for more profiling modes
 - [ ] Add support for Context ID

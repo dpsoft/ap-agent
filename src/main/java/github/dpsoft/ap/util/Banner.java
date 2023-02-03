@@ -37,7 +37,7 @@ public class Banner {
     }
 
 
-    private static String red(String text) { return "\u001b[31m" + text + "\u001b[0m"; }
+    private static String red(String text) { return bold("\u001b[31m" + text + "\u001b[0m"); }
     private static String green(String text) { return bold("\u001b[32m" + text + "\u001b[0m"); }
     private static String bold(String text) { return "\u001b[1m" + text + "\u001b[0m";}
 }
