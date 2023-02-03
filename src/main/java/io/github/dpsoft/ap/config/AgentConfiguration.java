@@ -1,4 +1,4 @@
-package github.dpsoft.ap.config;
+package io.github.dpsoft.ap.config;
 
 
 import com.typesafe.config.Config;

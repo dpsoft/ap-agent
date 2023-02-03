@@ -1,6 +1,6 @@
-package github.dpsoft.ap.command;
+package io.github.dpsoft.ap.command;
 
-import github.dpsoft.ap.config.AgentConfiguration;
+import io.github.dpsoft.ap.config.AgentConfiguration;
 import one.profiler.Events;
 
 import java.time.Duration;

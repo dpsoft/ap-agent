@@ -1,4 +1,4 @@
-package github.dpsoft.ap.util;
+package io.github.dpsoft.ap.util;
 
 
 import io.vavr.control.Try;

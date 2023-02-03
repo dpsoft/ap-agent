@@ -1,4 +1,4 @@
-package github.dpsoft.ap.util;
+package io.github.dpsoft.ap.util;
 
 import java.util.Map;
 import java.util.regex.Pattern;

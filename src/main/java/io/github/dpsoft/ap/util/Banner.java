@@ -1,6 +1,6 @@
-package github.dpsoft.ap.util;
+package io.github.dpsoft.ap.util;
 
-import github.dpsoft.ap.config.AgentConfiguration;
+import io.github.dpsoft.ap.config.AgentConfiguration;
 
 import java.io.*;
 import java.util.Map;

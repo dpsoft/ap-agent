@@ -1,9 +1,9 @@
-package github.dpsoft.ap;
+package io.github.dpsoft.ap;
 
-import github.dpsoft.ap.command.Command;
-import github.dpsoft.ap.config.AgentConfiguration;
-import github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
-import github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
+import io.github.dpsoft.ap.command.Command;
+import io.github.dpsoft.ap.config.AgentConfiguration;
+import io.github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
+import io.github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
 import io.vavr.control.Try;
 import one.converter.*;
 import one.jfr.JfrReader;

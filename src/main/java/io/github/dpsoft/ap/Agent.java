@@ -1,8 +1,8 @@
-package github.dpsoft.ap;
+package io.github.dpsoft.ap;
 
-import github.dpsoft.ap.config.AgentConfiguration;
-import github.dpsoft.ap.handler.AsyncProfilerHandler;
-import github.dpsoft.ap.util.Banner;
+import io.github.dpsoft.ap.config.AgentConfiguration;
+import io.github.dpsoft.ap.handler.AsyncProfilerHandler;
+import io.github.dpsoft.ap.util.Banner;
 import one.profiler.AsyncProfilerLoader;
 
 import java.io.IOException;

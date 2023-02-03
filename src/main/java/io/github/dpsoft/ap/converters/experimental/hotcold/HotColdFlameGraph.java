@@ -1,4 +1,4 @@
-package github.dpsoft.ap.converters.experimental.hotcold;
+package io.github.dpsoft.ap.converters.experimental.hotcold;
 /*
  * Copyright 2020 Andrei Pangin
  *
