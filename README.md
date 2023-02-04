@@ -68,6 +68,18 @@ go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30
 
 ![image](https://user-images.githubusercontent.com/2567525/214325045-0907e055-8f17-45cf-9f57-c2b52c366854.png)
 
+## Firefox profiling
+
+```shell
+./loop.sh cpu 60 profiling_results fp
+
+Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04:17:24 took 60 seconds.
+Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04:18:24 took 60 seconds.
+```
+
+Then go to [firefox profiler](https://profiler.firefox.com) and load your file.
+
+
 
 ## TODO
 - [x] Release to Maven Central
