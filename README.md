@@ -70,15 +70,8 @@ go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30
 
 ## Firefox Profiler
 
-### Profiling results
-
-#### Call tree
-
-![image](https://user-images.githubusercontent.com/18125567/216783099-e7e25bb4-8805-4e65-b746-7ebd86fa4eb9.png)
-
-#### Flame graph
-
-![image](https://user-images.githubusercontent.com/18125567/216783114-3e0a101d-def9-4d1f-a37a-a9c8fa4c0c2b.png)
+1. [Examples](#examples)
+2. [Profiling results](#profiling-results)
 
 ### Examples
 
@@ -134,6 +127,15 @@ Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04
 
 3. Load the output file from `step 1`, and you'll see the profiling result
 
+### Profiling results
+
+#### Call tree
+
+![image](https://user-images.githubusercontent.com/18125567/216783099-e7e25bb4-8805-4e65-b746-7ebd86fa4eb9.png)
+
+#### Flame graph
+
+![image](https://user-images.githubusercontent.com/18125567/216783114-3e0a101d-def9-4d1f-a37a-a9c8fa4c0c2b.png)
 
 ## TODO
 - [x] Release to Maven Central
