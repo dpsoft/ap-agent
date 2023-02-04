@@ -70,58 +70,56 @@ go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30
 
 ## Firefox Profiler
 
-### Basic example with `curl`
+### Profiling results
 
-1- Execute the profiler for the `cpu` event, `fp` (Firefox Profiler) output, a `60 seconds` duration and write the response to `profiling_results/firefox-profiler-example.json.gz`
+#### Call tree
 
-```shell
-curl -s "http://localhost:8080/profiler/profile?event=cpu&output=fp&duration=60" -o profiling_results/firefox-profiler-example.json.gz
-```
+![image](https://user-images.githubusercontent.com/18125567/216783099-e7e25bb4-8805-4e65-b746-7ebd86fa4eb9.png)
 
-2- Visit the [Firefox Profiler page](https://profiler.firefox.com)
+#### Flame graph
 
-![image](docs/firefox-profiler/fp-welcome-page.png)
+![image](https://user-images.githubusercontent.com/18125567/216783114-3e0a101d-def9-4d1f-a37a-a9c8fa4c0c2b.png)
 
-3- Load the output file from `step 1`, and you'll see the profiling result
+### Examples
 
-- Call tree
+1. [Basic example with `curl`](#basic-example-with-curl)
+2. [Example using `jfrtofp-server`](#example-using-jfrtofp-server)
+3. [Example using the `loop.sh` script](#example-using-the-loopsh-script)
 
-![image](docs/firefox-profiler/fp-call-tree.png)
+#### Basic example with `curl`
 
-- Flame graph
-
-![image](docs/firefox-profiler/fp-flame-graph.png)
-
-### Example using [jfrtofp-server](https://github.com/parttimenerd/jfrtofp-server)
-
-1- Execute the profiler for the `cpu` event, `fp` (Firefox Profiler) output, a `60 seconds` duration and write the response to `profiling_results/firefox-profiler-example.json.gz`
+1. Execute the profiler for the `cpu` event, `fp` (Firefox Profiler) output, a `60 seconds` duration and write the response to `profiling_results/firefox-profiler-example.json.gz`
 
 ```shell
 curl -s "http://localhost:8080/profiler/profile?event=cpu&output=fp&duration=60" -o profiling_results/firefox-profiler-example.json.gz
 ```
 
-** Note ** there is no need to ask for the `fp`(Firefox Profiler) output, you can provide `jfr` as output and the `jfrtofp-server` will do the conversion.
+2. Visit the [Firefox Profiler page](https://profiler.firefox.com)
 
-2- Start the `jfrtofp-server`, you can follow the steps from the [README](https://github.com/parttimenerd/jfrtofp-server#jfrtofp-server), with the output file from `step 1` as an argument
+![image](https://user-images.githubusercontent.com/18125567/216783063-4b7ce195-e717-45a7-b6a4-5cb30bf67b9e.png)
+
+3. Load the output file from `step 1`, and you'll see the profiling result
+
+#### Example using `jfrtofp-server`
+
+1. Execute the profiler for the `cpu` event, `fp` (Firefox Profiler) output, a `60 seconds` duration and write the response to `profiling_results/firefox-profiler-example.json.gz`
+
+```shell
+curl -s "http://localhost:8080/profiler/profile?event=cpu&output=fp&duration=60" -o profiling_results/firefox-profiler-example.json.gz
+```
+
+2. Start the [jfrtofp-server](https://github.com/parttimenerd/jfrtofp-server), you can follow the steps from the [README](https://github.com/parttimenerd/jfrtofp-server#jfrtofp-server), with the output file from `step 1` as an argument
 ```shell
 java -jar jfrtofp-server-all.jar profiling_results/firefox-profiler-example.json.gz
 ```
 
-3- The `jfrtofp-server` will log a message like `Navigate to http://localhost:55287/from-url/http%3A%2F%2Flocalhost%3A55287%2Ffiles%firefox-profiler-example.json.gz to launch the profiler view`
+3. The [jfrtofp-server](https://github.com/parttimenerd/jfrtofp-server) will log a message like `Navigate to http://localhost:55287/from-url/http%3A%2F%2Flocalhost%3A55287%2Ffiles%firefox-profiler-example.json.gz to launch the profiler view`
 
-4- Just click that link, and you will see the profiling result in the `Firefox Profiler` page
+4. Just click that link, and you will see the profiling result in the `Firefox Profiler` page
 
-- Call tree
+#### Example using the `loop.sh` script
 
-![image](docs/firefox-profiler/fp-call-tree.png)
-
-- Flame graph
-
-![image](docs/firefox-profiler/fp-flame-graph.png)
-
-### Example using the `loop.sh` script
-
-1- Continuously profile the application for the `cpu` event, `fp` (Firefox Profiler) output, a `60 seconds` duration and write the execution results to `profiling_results/` folder
+1. Continuously profile the application for the `cpu` event, `fp` (Firefox Profiler) output, a `60 seconds` duration and write the execution results to `profiling_results/` folder
 
 ```shell
 ./loop.sh cpu 60 profiling_results fp
@@ -130,19 +128,12 @@ Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04
 Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04:18:24 took 60 seconds.
 ```
 
-2- Visit the [Firefox Profiler page](https://profiler.firefox.com)
+2. Visit the [Firefox Profiler page](https://profiler.firefox.com)
 
-![image](docs/firefox-profiler/fp-welcome-page.png)
+![image](https://user-images.githubusercontent.com/18125567/216783063-4b7ce195-e717-45a7-b6a4-5cb30bf67b9e.png)
 
-3- Load the output file from `step 1`, and you'll see the profiling result
+3. Load the output file from `step 1`, and you'll see the profiling result
 
-- Call tree
-
-![image](docs/firefox-profiler/fp-call-tree.png)
-
-- Flame graph
-
-![image](docs/firefox-profiler/fp-flame-graph.png)
 
 ## TODO
 - [x] Release to Maven Central
