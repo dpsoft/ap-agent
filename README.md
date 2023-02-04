@@ -89,7 +89,7 @@ curl -s "http://localhost:8080/profiler/profile?event=cpu&output=fp&duration=60"
 
 2. Visit the [Firefox Profiler page](https://profiler.firefox.com)
 
-![image](https://user-images.githubusercontent.com/18125567/216783063-4b7ce195-e717-45a7-b6a4-5cb30bf67b9e.png)
+![Screenshot 2023-02-04 at 13 12 49](https://user-images.githubusercontent.com/18125567/216790473-2749c404-5b1b-41c8-bb3c-fc3854e60f1b.png)
 
 3. Load the output file from `step 1`, and you'll see the profiling result
 
@@ -123,7 +123,7 @@ Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04
 
 2. Visit the [Firefox Profiler page](https://profiler.firefox.com)
 
-![image](https://user-images.githubusercontent.com/18125567/216783063-4b7ce195-e717-45a7-b6a4-5cb30bf67b9e.png)
+![Screenshot 2023-02-04 at 13 12 49](https://user-images.githubusercontent.com/18125567/216790425-2a888508-0582-4f6e-a9de-2a6ef4a8c13e.png)
 
 3. Load the output file from `step 1`, and you'll see the profiling result
 
@@ -131,11 +131,11 @@ Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04
 
 #### Call tree
 
-![image](https://user-images.githubusercontent.com/18125567/216783099-e7e25bb4-8805-4e65-b746-7ebd86fa4eb9.png)
+![Screenshot 2023-02-04 at 13 24 53](https://user-images.githubusercontent.com/18125567/216790459-c7dc601e-c44b-4763-aca7-bf268dfc243f.png)
 
 #### Flame graph
 
-![image](https://user-images.githubusercontent.com/18125567/216783114-3e0a101d-def9-4d1f-a37a-a9c8fa4c0c2b.png)
+![Screenshot 2023-02-04 at 13 27 32](https://user-images.githubusercontent.com/18125567/216790464-3f0437c5-4a49-46c2-9709-8f7ed3ccf5fb.png)
 
 ## TODO
 - [x] Release to Maven Central
