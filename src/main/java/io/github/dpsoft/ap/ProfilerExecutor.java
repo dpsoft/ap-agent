@@ -15,14 +15,10 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.nio.file.Paths;
 import java.util.zip.GZIPOutputStream;
 
 import static io.vavr.API.*;
 import static io.vavr.Predicates.*;
-
-import me.bechberger.jfrtofp.processor.SimpleProcessor;
-import me.bechberger.jfrtofp.processor.Config;
 
 public class ProfilerExecutor {
 
@@ -53,12 +49,11 @@ public class ProfilerExecutor {
 
     public void pipeTo(OutputStream out, String output) {
         final var result = Match(output).of(
-            Case($(is("pprof")), () -> toPProf(out)),
-            Case($(is("jfr")), () -> toJFR(out)),
-            Case($(is("nflx")), () -> toFlameScope(out)),
-            Case($(isIn("flamegraph", "flame", "collapsed", "hotcold")), (type) -> toFlame(type, out)),
-            Case($(isIn("fp")), () -> toFirefoxProfiler(out)),
-            Case($(isNull()), () -> toJFR(out)));
+                Case($(is("pprof")), () -> toPProf(out)),
+                Case($(is("jfr")), () ->  toJFR(out)),
+                Case($(is("nflx")), () ->  toFlameScope(out)),
+                Case($(isIn("flamegraph", "flame", "collapsed", "hotcold")),(type) -> toFlame(type, out)),
+                Case($(isNull()), () -> toJFR(out)));
 
         result.andFinally(file::delete);
         result.onFailure(cause -> Logger.error(cause, "It has not been possible to pipe the profiler result to the output stream."));
@@ -68,15 +63,6 @@ public class ProfilerExecutor {
         return Try.run(() -> {
             try (var fileReader = new FileInputStream(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
                 fileReader.transferTo(outputStream);
-            }
-        });
-    }
-
-    private Try<Void> toFirefoxProfiler(OutputStream out) {
-        return Try.run(() -> {
-            final var processor = new SimpleProcessor(new Config(), Paths.get(file.getAbsolutePath()));
-            try (var outputStream = new PrintStream(out)) {
-                processor.processZipped(outputStream);
             }
         });
     }
