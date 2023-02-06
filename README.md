@@ -16,7 +16,7 @@ java -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
 The endpoint accepts the following parameters:
 
 * `event`: The type of event to profile (e.g. `cpu`, `itimer`, `wall`)
-* `output`: The desired output format (e.g. `flamegraph`, `hotcold`, `jfr`, `pprof`)
+* `output`: The desired output format (e.g. `flamegraph`, `hotcold`, `jfr`, `pprof`, `fp`)
 * `duration`: The length of time to profile for (in seconds)
 
 For example, to profile CPU usage for 30 seconds and output the results in Flamegraph format, the following API call would be used: `http://localhost:8080/profiler/profile?event=cpu&output=flame&duration=30`
@@ -54,19 +54,6 @@ Running the script with the `cpu` event and `60 second` duration, we can see the
 Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:17:24 took 60 seconds.
 Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:18:24 took 60 seconds.
 ```
-
-## Go Mode
-The agent also supports a `GO`(lang) mode, which exposes the `/debug/pprof/profile` endpoint. This is where we can use the go [pprof] tools.
-
-```shell
-java -Dap-agent.handler.go-mode=true -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
-
-go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30  
-```
-
-![image](https://user-images.githubusercontent.com/2567525/214324772-91ac9a97-13b3-4ed1-90a8-175882e79a5b.png)    
-
-![image](https://user-images.githubusercontent.com/2567525/214325045-0907e055-8f17-45cf-9f57-c2b52c366854.png)
 
 ## Firefox Profiler
 
@@ -133,6 +120,19 @@ Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04
 #### Flame graph
 
 ![image](https://user-images.githubusercontent.com/2567525/216951636-70818765-c8aa-44f6-a452-f998a3e1f735.png)
+
+## Go Mode
+The agent also supports a `GO`(lang) mode, which exposes the `/debug/pprof/profile` endpoint. This is where we can use the go [pprof] tools.
+
+```shell
+java -Dap-agent.handler.go-mode=true -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
+
+go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30  
+```
+
+![image](https://user-images.githubusercontent.com/2567525/214324772-91ac9a97-13b3-4ed1-90a8-175882e79a5b.png)    
+
+![image](https://user-images.githubusercontent.com/2567525/214325045-0907e055-8f17-45cf-9f57-c2b52c366854.png)
 
 ## TODO
 - [ ] Release to Maven Central
