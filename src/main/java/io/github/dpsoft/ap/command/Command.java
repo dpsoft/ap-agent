@@ -35,11 +35,11 @@ public class Command {
     }
 
     private static Output getOutput(Map<String, String> params, AgentConfiguration.Handler configuration) {
-        if(configuration.isGoMode()) return Output.PPROF;
-       return Option
-               .of(params.get("output"))
-               .flatMap(Output::get)
-               .getOrElse(Output.JFR);
+        if (configuration.isGoMode()) return Output.PPROF;
+        return Option
+                .of(params.get("output"))
+                .flatMap(Output::get)
+                .getOrElse(Output.JFR);
     }
 
     private static String getEventType(Map<String, String> params, Output output) {
@@ -49,12 +49,12 @@ public class Command {
 
     private static Duration getDuration(Map<String, String> params) {
         if (params.get("duration") != null) return Duration.ofSeconds(Long.parseLong(params.get("duration")));
-        if (params.get("seconds" ) != null) return Duration.ofSeconds(Long.parseLong(params.get("seconds")));
+        if (params.get("seconds") != null) return Duration.ofSeconds(Long.parseLong(params.get("seconds")));
         return Duration.ofSeconds(Long.parseLong("30")); // default value
     }
 
     public String asFormatString(String absolutePath) {
-        final var sb =  new StringBuilder().append("start,jfr,event=").append(eventType);
+        final var sb = new StringBuilder().append("start,jfr,event=").append(eventType);
         if (interval != null) sb.append(",interval=").append(interval);
         sb.append(",file=").append(absolutePath);
         return sb.toString();
@@ -72,7 +72,7 @@ public class Command {
         FLAME("flame"),
         COLLAPSED("collapsed"),
         HOT_COLD("hotcold"),
-       FIREFOX_PROFILER("fp");
+        FIREFOX_PROFILER("fp");
 
         private final String value;
 
@@ -81,7 +81,7 @@ public class Command {
         }
 
         public static Option<Output> get(String value) {
-             return Option.ofOptional(Arrays.stream(Output.values())
+            return Option.ofOptional(Arrays.stream(Output.values())
                     .filter(output -> output.value.equals(value))
                     .findFirst());
         }
