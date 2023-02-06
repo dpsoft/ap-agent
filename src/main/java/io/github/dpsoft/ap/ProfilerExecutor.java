@@ -1,6 +1,7 @@
 package io.github.dpsoft.ap;
 
 import io.github.dpsoft.ap.command.Command;
+import io.github.dpsoft.ap.command.Command.Output;
 import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
 import io.github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
@@ -51,13 +52,13 @@ public class ProfilerExecutor {
         });
     }
 
-    public void pipeTo(OutputStream out, String output) {
+    public void pipeTo(OutputStream out, Output output) {
         final var result = Match(output).of(
-            Case($(is("pprof")), () -> toPProf(out)),
-            Case($(is("jfr")), () -> toJFR(out)),
-            Case($(is("nflx")), () -> toFlameScope(out)),
-            Case($(isIn("flamegraph", "flame", "collapsed", "hotcold")), (type) -> toFlame(type, out)),
-            Case($(isIn("fp")), () -> toFirefoxProfiler(out)),
+            Case($(is(Output.PPROF)), () -> toPProf(out)),
+            Case($(is(Output.JFR)), () -> toJFR(out)),
+            Case($(is(Output.NFLX)), () -> toFlameScope(out)),
+            Case($(isIn(Output.FLAME_GRAPH, Output.FLAME, Output.COLLAPSED, Output.HOT_COLD)), (type) -> toFlame(type, out)),
+            Case($(is(Output.FIREFOX_PROFILER)), () -> toFirefoxProfiler(out)),
             Case($(isNull()), () -> toJFR(out)));
 
         result.andFinally(file::delete);
@@ -81,11 +82,11 @@ public class ProfilerExecutor {
         });
     }
 
-    private Try<Void> toFlame(String type, OutputStream out) {
-        if("hotcold".equals(type)) return toHotColdFlame(out);
+    private Try<Void> toFlame(Output type, OutputStream out) {
+        if(Output.HOT_COLD == type) return toHotColdFlame(out);
         return Try.run(() -> {
             final var args = new Arguments("--cpu", "--lines");
-            final var flame = "collapsed".equals(type) ? new CollapsedStacks(args) : new FlameGraph(args);
+            final var flame = Output.COLLAPSED == type ? new CollapsedStacks(args) : new FlameGraph(args);
 
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new PrintStream(out)) {
                 new jfr2flame(reader, args).convert(flame);
