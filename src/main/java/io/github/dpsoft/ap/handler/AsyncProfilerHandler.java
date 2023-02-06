@@ -39,7 +39,7 @@ public class AsyncProfilerHandler implements HttpHandler {
             if(configuration.isGoMode() || Output.FIREFOX_PROFILER == command.output) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
 
             ProfilerExecutor
-                    .with(asyncProfiler, configuration)
+                    .with(asyncProfiler)
                     .run(command)
                     .onSuccess(result -> result.pipeTo(exchange.getResponseBody(), command.output))
                     .onFailure(cause -> Logger.error(cause, "It has not been possible to execute the profiler command."))

@@ -2,7 +2,6 @@ package io.github.dpsoft.ap;
 
 import io.github.dpsoft.ap.command.Command;
 import io.github.dpsoft.ap.command.Command.Output;
-import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
 import io.github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
 import io.vavr.control.Try;
@@ -28,15 +27,13 @@ import me.bechberger.jfrtofp.processor.Config;
 public class ProfilerExecutor {
 
     private final AsyncProfiler profiler;
-    private final AgentConfiguration.Handler configuration;
     private final File file;
 
-    public static ProfilerExecutor with(AsyncProfiler profiler, AgentConfiguration.Handler configuration) {
-        return new ProfilerExecutor(profiler, configuration);
+    public static ProfilerExecutor with(AsyncProfiler profiler) {
+        return new ProfilerExecutor(profiler);
     }
 
-    private ProfilerExecutor(AsyncProfiler profiler, AgentConfiguration.Handler configuration) {
-        this.configuration = configuration;
+    private ProfilerExecutor(AsyncProfiler profiler) {
         this.profiler = profiler;
         this.file = Try.of(() -> File.createTempFile("ap-agent", ".jfr"))
                 .onSuccess(File::deleteOnExit)
