@@ -122,25 +122,20 @@ Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.json.gz at 04
 ```
 
 2. Visit the [Firefox Profiler page](https://profiler.firefox.com)
-
-![Screenshot 2023-02-04 at 13 12 49](https://user-images.githubusercontent.com/18125567/216790425-2a888508-0582-4f6e-a9de-2a6ef4a8c13e.png)
-
 3. Load the output file from `step 1`, and you'll see the profiling result
 
 ### Profiling results
 
 #### Call tree
 
-![Screenshot 2023-02-04 at 13 24 53](https://user-images.githubusercontent.com/18125567/216790459-c7dc601e-c44b-4763-aca7-bf268dfc243f.png)
+![image](https://user-images.githubusercontent.com/2567525/216951998-615f4164-acae-4635-b5b6-c2c3e053a07c.png)
 
 #### Flame graph
 
-![Screenshot 2023-02-04 at 13 27 32](https://user-images.githubusercontent.com/18125567/216790464-3f0437c5-4a49-46c2-9709-8f7ed3ccf5fb.png)
+![image](https://user-images.githubusercontent.com/2567525/216951636-70818765-c8aa-44f6-a452-f998a3e1f735.png)
 
 ## TODO
-- [x] Release to Maven Central
-- [ ] Improve documentation and add more usage examples 
-- [ ] Add support for more profiling modes
+- [ ] Release to Maven Central
 - [ ] Add support for Context ID
 
 
