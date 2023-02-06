@@ -90,6 +90,7 @@
                             <goal>shade</goal>
                         </goals>
                         <configuration>
+                            <minimizeJar>true</minimizeJar>
                             <artifactSet>
                                 <excludes>
                                     <exclude>org.codehaus.mojo</exclude>
@@ -115,33 +116,55 @@
                                         <exclude>META-INF/*.SF</exclude>
                                         <exclude>META-INF/*.DSA</exclude>
                                         <exclude>META-INF/*.RSA</exclude>
+                                        <exclude>META-INF/*.md</exclude>
+                                        <exclude>META-INF/LICENSE</exclude>
                                     </excludes>
                                 </filter>
                             </filters>
                             <relocations>
                                 <relocation>
                                     <pattern>com.typesafe.config</pattern>
-                                    <shadedPattern>dpsoft.ap.libs.com.typesafe.config</shadedPattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.com.typesafe.config</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>io.vavr</pattern>
-                                    <shadedPattern>dpsoft.ap.libs.io.vavr</shadedPattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.io.vavr</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.tinylog</pattern>
-                                    <shadedPattern>dpsoft.ap.libs.org.tinylog</shadedPattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.org.tinylog</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>one</pattern>
-                                    <shadedPattern>dpsoft.ap.libs.one</shadedPattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.one</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>dev.dirs</pattern>
-                                    <shadedPattern>dpsoft.ap.libs.dev.dirs</shadedPattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.dev.dirs</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>me.bechberger</pattern>
-                                    <shadedPattern>dpsoft.ap.libs.me.bechberger</shadedPattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.me.bechberger</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>kotlin</pattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.kotlin</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>kotlinx</pattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.kotlinx</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.jetbrains</pattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.org.jetbrains</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.jline</pattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.org.jline</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>org.objectweb</pattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.org.objectweb</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
