@@ -1,6 +1,7 @@
 package io.github.dpsoft.ap.command;
 
 import io.github.dpsoft.ap.config.AgentConfiguration;
+import io.vavr.collection.Array;
 import io.vavr.collection.List;
 import io.vavr.control.Option;
 import one.profiler.Events;
@@ -59,12 +60,11 @@ public class Command {
 
     private static List<String> getEventParams(Map<String, String> parameters) {
         if (parameters.get("params") == null) return List.empty();
-        final var params  = Arrays.stream(parameters.get("params").split(","))
+        return List.of(parameters.get("params").split(","))
                 .map(param -> "--" + param)
                 .map(param -> param.replace("=", ","))
-                .toArray(String[]::new);
-
-        return List.of(String.join(",", params).split(","));
+                .map(param -> param.split(","))
+                .flatMap(Array::of);
     }
 
     public String asFormatString(String absolutePath) {
