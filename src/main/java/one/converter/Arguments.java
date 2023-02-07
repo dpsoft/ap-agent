@@ -40,7 +40,7 @@ public class Arguments {
     boolean bci;
     boolean simple;
     boolean dot;
-    boolean collapsed;
+    public boolean collapsed;
     long from;
     long to;
     String input;

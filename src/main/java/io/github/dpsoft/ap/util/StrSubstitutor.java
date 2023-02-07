@@ -6,7 +6,7 @@ import java.util.regex.Pattern;
 /**
  * Taken from :<a href="https://stackoverflow.com/a/14045462">...</a>
  */
-public class StrSubstitutor {
+public final class StrSubstitutor {
     private final Map<String, String> map;
     private static final Pattern p = Pattern.compile("\\$\\{(.+?)\\}");
 
@@ -18,8 +18,8 @@ public class StrSubstitutor {
         final var m = p.matcher(str);
         final var sb = new StringBuilder();
         while (m.find()) {
-            String var = m.group(1);
-            String replacement = map.get(var);
+            final var var = m.group(1);
+            final var replacement = map.get(var);
             m.appendReplacement(sb, replacement);
         }
         m.appendTail(sb);

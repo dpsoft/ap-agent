@@ -41,7 +41,7 @@ public class AsyncProfilerHandler implements HttpHandler {
             ProfilerExecutor
                     .with(asyncProfiler)
                     .run(command)
-                    .onSuccess(result -> result.pipeTo(exchange.getResponseBody(), command.output))
+                    .onSuccess(result -> result.pipeTo(exchange.getResponseBody(), command))
                     .onFailure(cause -> Logger.error(cause, "It has not been possible to execute the profiler command."))
                     .andFinally(exchange::close);
         }

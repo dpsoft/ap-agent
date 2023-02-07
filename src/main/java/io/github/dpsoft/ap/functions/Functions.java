@@ -1,19 +1,19 @@
 package io.github.dpsoft.ap.functions;
 
-import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
-public class Functions {
+public final class Functions {
     /**
      * Splits a query string apart into its component name/value pairs
      *
      * @param uri
      * @return a map of query parameters
      */
-    public static Map<String, String> splitQueryParams(URI uri) throws UnsupportedEncodingException {
+    public static Map<String, String> splitQueryParams(URI uri) {
         final var queryPairs = new HashMap<String, String>();
         final var query = uri.getQuery();
         final var pairs = query.split("&");
@@ -22,7 +22,7 @@ public class Functions {
             final int idx = pair.indexOf("=");
             final var key = pair.substring(0, idx);
             final var value = pair.substring(idx + 1);
-            queryPairs.put(URLDecoder.decode(key, "UTF-8"), URLDecoder.decode(value, "UTF-8"));
+            queryPairs.put(URLDecoder.decode(key, StandardCharsets.UTF_8), URLDecoder.decode(value, StandardCharsets.UTF_8));
         }
         return queryPairs;
     }
