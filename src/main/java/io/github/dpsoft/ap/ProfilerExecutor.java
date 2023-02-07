@@ -4,6 +4,7 @@ import io.github.dpsoft.ap.command.Command;
 import io.github.dpsoft.ap.command.Command.Output;
 import io.github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
 import io.github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
+import io.vavr.collection.List;
 import io.vavr.control.Try;
 import one.converter.*;
 import one.jfr.JfrReader;
@@ -49,12 +50,12 @@ public class ProfilerExecutor {
         });
     }
 
-    public void pipeTo(OutputStream out, Output output) {
-        final var result = Match(output).of(
+    public void pipeTo(OutputStream out, Command command) {
+        final var result = Match(command.output).of(
             Case($(is(Output.PPROF)), () -> toPProf(out)),
             Case($(is(Output.JFR)), () -> toJFR(out)),
             Case($(is(Output.NFLX)), () -> toFlameScope(out)),
-            Case($(isIn(Output.FLAME_GRAPH, Output.FLAME, Output.COLLAPSED, Output.HOT_COLD)), (type) -> toFlame(type, out)),
+            Case($(isIn(Output.FLAME_GRAPH, Output.FLAME, Output.COLLAPSED, Output.HOT_COLD)), (type) -> toFlame(type, command.eventParams, out)),
             Case($(is(Output.FIREFOX_PROFILER)), () -> toFirefoxProfiler(out)),
             Case($(isNull()), () -> toJFR(out)));
 
@@ -79,10 +80,11 @@ public class ProfilerExecutor {
         });
     }
 
-    private Try<Void> toFlame(Output type, OutputStream out) {
+    private Try<Void> toFlame(Output type, List<String> eventParams, OutputStream out) {
         if(Output.HOT_COLD == type) return toHotColdFlame(out);
         return Try.run(() -> {
-            final var args = new Arguments("--cpu", "--lines");
+            final var params = eventParams.appendAll(List.of("--cpu", "--lines"));
+            final var args = new Arguments(params.toJavaArray(String[]::new));
             final var flame = Output.COLLAPSED == type ? new CollapsedStacks(args) : new FlameGraph(args);
 
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new PrintStream(out)) {

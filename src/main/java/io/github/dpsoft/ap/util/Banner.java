@@ -7,7 +7,7 @@ import java.io.*;
 import java.util.Map;
 import java.util.Scanner;
 
-public class Banner {
+public final class Banner {
 
     public static void show(AgentConfiguration configuration) throws IOException {
         if (configuration.showBanner()) {
@@ -37,9 +37,6 @@ public class Banner {
             }
         }
     }
-
-
-
 
     private static String red(String text) { return bold("\u001b[31m" + text + "\u001b[0m"); }
     private static String green(String text) { return bold("\u001b[32m" + text + "\u001b[0m"); }

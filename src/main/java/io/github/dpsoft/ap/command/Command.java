@@ -1,6 +1,7 @@
 package io.github.dpsoft.ap.command;
 
 import io.github.dpsoft.ap.config.AgentConfiguration;
+import io.vavr.collection.List;
 import io.vavr.control.Option;
 import one.profiler.Events;
 
@@ -12,6 +13,7 @@ import java.util.Map;
 public class Command {
     public final String eventType;
     public final Duration durationSeconds;
+    public final List<String> eventParams;
     public final String interval;
     public final String file;
     public final Output output;
@@ -20,15 +22,17 @@ public class Command {
         final var output = getOutput(params, configuration);
         final var eventType = getEventType(params, output);
         final var duration = getDuration(params);
+        final var eventParams = getEventParams(params);
         final var interval = params.get("interval");
         final var file = params.getOrDefault("file", "profile.jfr");
 
-        return new Command(eventType, duration, interval, file, output);
+        return new Command(eventType, duration, eventParams, interval, file, output);
     }
 
-    private Command(String eventType, Duration durationSeconds, String interval, String file, Output output) {
+    private Command(String eventType, Duration durationSeconds, List<String> eventParams, String interval, String file, Output output) {
         this.eventType = eventType;
         this.durationSeconds = durationSeconds;
+        this.eventParams = eventParams;
         this.interval = interval;
         this.file = file;
         this.output = output;
@@ -51,6 +55,16 @@ public class Command {
         if (params.get("duration") != null) return Duration.ofSeconds(Long.parseLong(params.get("duration")));
         if (params.get("seconds") != null) return Duration.ofSeconds(Long.parseLong(params.get("seconds")));
         return Duration.ofSeconds(Long.parseLong("30")); // default value
+    }
+
+    private static List<String> getEventParams(Map<String, String> parameters) {
+        if (parameters.get("params") == null) return List.empty();
+        final var params  = Arrays.stream(parameters.get("params").split(","))
+                .map(param -> "--" + param)
+                .map(param -> param.replace("=", ","))
+                .toArray(String[]::new);
+
+        return List.of(String.join(",", params).split(","));
     }
 
     public String asFormatString(String absolutePath) {
