@@ -59,7 +59,7 @@ public final class ProfilerExecutor {
             Case($(is(Output.PPROF)), () -> toPProf(out)),
             Case($(is(Output.JFR)), () -> toJFR(out)),
             Case($(is(Output.NFLX)), () -> toFlameScope(out)),
-            Case($(isIn(Output.FLAME_GRAPH, Output.FLAME, Output.COLLAPSED, Output.HOT_COLD)), (type) -> toFlame(type, command, out)),
+            Case($(isIn(Output.FLAME_GRAPH, Output.FLAME, Output.COLLAPSED, Output.HOT_COLD)), () -> toFlame(command, out)),
             Case($(is(Output.FIREFOX_PROFILER)), () -> toFirefoxProfiler(out)),
             Case($(isNull()), () -> toJFR(out)));
 
@@ -84,14 +84,14 @@ public final class ProfilerExecutor {
         });
     }
 
-    private Try<Void> toFlame(Output type, Command command, OutputStream out) {
-        if(Output.HOT_COLD == type) return toHotColdFlame(out);
+    private Try<Void> toFlame(Command command, OutputStream out) {
+        if(Output.HOT_COLD == command.output) return toHotColdFlame(out);
         return Try.run(() -> {
             final var eventType = EventTypes.contains(command.eventType) ? command.eventType : Events.CPU;
             final var params = command.eventParams.appendAll(List.of(eventType).map(event -> "--" + event));
             final var arguments = new Arguments(params.toJavaArray(String[]::new));
 
-            final var flame = (Output.COLLAPSED == type || arguments.collapsed) ? new CollapsedStacks(arguments) : new FlameGraph(arguments);
+            final var flame = (Output.COLLAPSED == command.output || arguments.collapsed) ? new CollapsedStacks(arguments) : new FlameGraph(arguments);
 
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new PrintStream(out)) {
                 new jfr2flame(reader, arguments).convert(flame);
