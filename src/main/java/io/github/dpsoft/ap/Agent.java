@@ -20,10 +20,4 @@ public final class Agent {
             server.createContext("/", profilerHandler);
         });
     }
-
-    public static void main(String[] args) throws IOException {
-        premain("", null);
-        while (true){}
-
-    }
 }
