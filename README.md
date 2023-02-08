@@ -21,13 +21,15 @@ The endpoint accepts the following parameters:
 * `output`: The desired output format (e.g. `flamegraph`, `hotcold`, `jfr`, `pprof`, `fp`)
 * `duration`: The length of time to profile for (in seconds)
 
-### Flamegraph
+### Flame Graph
 For example, to profile CPU usage for 30 seconds and output the results in Flamegraph format, the following API call would be used: `http://localhost:8080/profiler/profile?event=cpu&output=flame&duration=30`
 
 ![image](https://user-images.githubusercontent.com/2567525/214323977-af9a4c92-8cbc-48dd-a0c6-f1f7a37122ee.png)
 
-### Hot/Cold Flamegraph
-`http://localhost:8080/profiler/profile?event=cpu&output=hotcold&duration=30`
+### Hot/Cold Flame Graph
+This type of visualization combines both `on-CPU` and `off-CPU` flame graphs. This visualization provides a comprehensive view of the performance data by showing all thread time in one graph and allowing direct comparisons between `on-CPU` and `off-CPU` code path durations.
+
+For example, the following API call would be used: `http://localhost:8080/profiler/profile?event=cpu&output=hotcold&duration=30`
 
 ![image](https://user-images.githubusercontent.com/2567525/217419824-5d982e67-8175-4239-9b42-c7dbe58dd452.png)
 
@@ -143,7 +145,6 @@ go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30
 ![image](https://user-images.githubusercontent.com/2567525/214325045-0907e055-8f17-45cf-9f57-c2b52c366854.png)
 
 ## TODO
-- [ ] Release to Maven Central
 - [ ] Add support for Context ID
 
 
