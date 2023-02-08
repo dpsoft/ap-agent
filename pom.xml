@@ -9,7 +9,7 @@
     <version>0.1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
     <properties>
-        <me.bechberger.ap-loader.version>2.9-3</me.bechberger.ap-loader.version>
+        <me.bechberger.ap-loader.version>2.9-4</me.bechberger.ap-loader.version>
         <io.vavr.version>0.10.3</io.vavr.version>
         <com.typesafe.config.version>1.4.2</com.typesafe.config.version>
         <org.tinylog.version>2.5.0</org.tinylog.version>
@@ -103,7 +103,6 @@
                                     implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
                                     <manifestEntries>
                                         <Premain-Class>io.github.dpsoft.ap.Agent</Premain-Class>
-                                        <Agent-Class>io.github.dpsoft.ap.Agent</Agent-Class>
                                     </manifestEntries>
                                 </transformer>
                                 <transformer

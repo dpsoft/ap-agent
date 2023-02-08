@@ -1,4 +1,4 @@
-package io.github.dpsoft.ap;
+package io.github.dpsoft.ap.util;
 
 import io.github.dpsoft.ap.command.Command;
 import io.github.dpsoft.ap.command.Command.Output;

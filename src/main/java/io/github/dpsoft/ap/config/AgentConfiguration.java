@@ -31,7 +31,6 @@ public final class AgentConfiguration {
     }
 
     public static class Handler {
-
         public final boolean goMode;
         public final String goContext;
         public final String context;
