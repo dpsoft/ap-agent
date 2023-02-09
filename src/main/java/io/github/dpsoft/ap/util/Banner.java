@@ -3,6 +3,8 @@ package io.github.dpsoft.ap.util;
 import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.github.dpsoft.ap.functions.Functions;
 import io.vavr.control.Try;
+import org.tinylog.Logger;
+
 import java.util.Map;
 import java.util.Scanner;
 
@@ -34,7 +36,8 @@ public final class Banner {
                 }
                 System.out.println();
                 return null; // void :(
-            });
+
+            }).onFailure((error) -> Logger.warn(error, () -> "It has not been possible to show the banner."));
         }
     }
 
