@@ -9,7 +9,6 @@ import java.util.Map;
 import java.util.Scanner;
 
 public final class Banner {
-
     public static void show(AgentConfiguration configuration) {
         if (configuration.showBanner()) {
             final var version = (BuildInfo.version() == null ? "" : " v" + BuildInfo.version() + "");
