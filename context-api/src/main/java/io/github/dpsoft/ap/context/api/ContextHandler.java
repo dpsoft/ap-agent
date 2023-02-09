@@ -11,7 +11,7 @@ public class ContextHandler {
     /**
      * Returns the current context.
      */
-    public Context currentContext() { return Context.empty(); }
+    public Context currentContext() { return Context.EMPTY; }
     /**
      * Stores the current context and returns a scope that can be used to restore it.
      */

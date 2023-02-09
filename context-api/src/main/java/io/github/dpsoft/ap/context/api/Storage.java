@@ -14,7 +14,7 @@ public interface Storage {
             INSTANCE;
 
             @Override
-            public Context context() { return Context.empty(); }
+            public Context context() { return Context.EMPTY; }
 
             @Override
             public void close() { }
@@ -25,7 +25,7 @@ public interface Storage {
         INSTANCE;
 
         @Override
-        public Context current() { return Context.empty(); }
+        public Context current() { return Context.EMPTY; }
 
         @Override
         public Scope store(Context context) {
