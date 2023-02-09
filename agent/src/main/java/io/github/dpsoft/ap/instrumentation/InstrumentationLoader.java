@@ -1,7 +1,7 @@
 package io.github.dpsoft.ap.instrumentation;
 
-import io.github.dpsoft.ap.context.Context;
 import io.github.dpsoft.ap.context.ContextStorage;
+import io.github.dpsoft.ap.context.api.Context;
 import net.bytebuddy.agent.builder.AgentBuilder;
 import net.bytebuddy.agent.builder.AgentBuilder.RedefinitionStrategy;
 import net.bytebuddy.implementation.MethodDelegation;
@@ -17,8 +17,8 @@ public class InstrumentationLoader {
     public static void install(Instrumentation instrumentation) {
         new AgentBuilder.Default()
 //                .with(AgentBuilder.Listener.StreamWriting.toSystemError())
-                .with(RedefinitionStrategy.RETRANSFORMATION)
-                .type(named("io.github.dpsoft.ap.ClassToOverride"))
+//                .with(RedefinitionStrategy.RETRANSFORMATION)
+                .type(named("io.github.dpsoft.ap.context.api.ContextHandler"))
                 .transform((builder, typeDescription, classLoader, module, transformer) ->
                         builder.method(namedOneOf("runWithContext", "currentContext", "storeContext"))
                                .intercept(MethodDelegation.to(new ContextStorageInterceptor())))

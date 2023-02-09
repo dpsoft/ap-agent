@@ -1,5 +1,7 @@
 package io.github.dpsoft.ap.context;
 
+import io.github.dpsoft.ap.context.api.Context;
+import io.github.dpsoft.ap.context.api.Storage;
 import io.vavr.control.Try;
 import org.tinylog.Logger;
 
@@ -9,7 +11,7 @@ public final class ContextStorage {
 
     public static final ContextStorage INSTANCE = new ContextStorage();
 
-    private final Storage storage = new Storage.ThreadLocalStorage();
+    private final Storage storage = new ThreadLocalStorage();
 
     public Context currentContext() { return storage.current();}
     public Storage.Scope storeContext(Context context) { return storage.store(context); }

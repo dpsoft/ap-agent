@@ -1,4 +1,4 @@
-package io.github.dpsoft.ap.context;
+package io.github.dpsoft.ap.context.api;
 
 import java.util.Map;
 
@@ -13,7 +13,7 @@ public final class Context {
     public static Context empty() {
         return new Context(0, Map.of());
     }
-    
+
     public Context(long contextId, Map<String, String> tags) {
         this.contextId = contextId;
         this.tags = tags;
