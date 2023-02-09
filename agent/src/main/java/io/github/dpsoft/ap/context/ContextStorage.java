@@ -7,10 +7,12 @@ import org.tinylog.Logger;
 
 import java.util.concurrent.Callable;
 
+/**
+ * This class is used to store and retrieve the current context.
+ * Its is the real implementation that is injected by the agent in runtime to replace the Noop one. see {@link io.github.dpsoft.ap.context.api.ContextHandler}
+ */
 public final class ContextStorage {
-
     public static final ContextStorage INSTANCE = new ContextStorage();
-
     private final Storage storage = new ThreadLocalStorage();
 
     public Context currentContext() { return storage.current();}
