@@ -8,6 +8,7 @@
     <artifactId>ap-agent</artifactId>
     <version>0.1.1-SNAPSHOT</version>
     <packaging>jar</packaging>
+
     <properties>
         <me.bechberger.ap-loader.version>2.9-4</me.bechberger.ap-loader.version>
         <io.vavr.version>0.10.3</io.vavr.version>
@@ -59,6 +60,17 @@
             <groupId>me.bechberger</groupId>
             <artifactId>jfrtofp</artifactId>
             <version>${me.bechberger.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>1.12.22</version>
+        </dependency>
+
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>1.12.22</version>
         </dependency>
     </dependencies>
     <build>
@@ -165,6 +177,10 @@
                                 <relocation>
                                     <pattern>org.objectweb</pattern>
                                     <shadedPattern>io.github.dpsoft.ap.libs.org.objectweb</shadedPattern>
+                                </relocation>
+                                <relocation>
+                                    <pattern>net.bytebuddy</pattern>
+                                    <shadedPattern>io.github.dpsoft.ap.libs.net.bytebuddy</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
