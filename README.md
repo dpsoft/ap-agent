@@ -33,6 +33,20 @@ For example, the following API call would be used: `http://localhost:8080/profil
 
 ![image](https://user-images.githubusercontent.com/2567525/217419824-5d982e67-8175-4239-9b42-c7dbe58dd452.png)
 
+### Flame Graph from Collapsed Stack Traces
+The collapsed stack trace format is a collection of call stacks, where each line represents a semicolon-separated list of frames followed by a counter. The frames represent the function calls in the stack and the counter indicates how many times that particular stack has been executed.
+
+To generate a flame graph from the collapsed stack trace format, and share it easily using flamegraph.com, you can use the following command:
+
+```shell
+curl http://localhost:8080/profiler/profile?event=cpu&output=collapsed&duration=30 | curl --data-binary @- https://flamegraph.com | jq -r '."url"' | xargs -I {} echo "https://flamegraph.com/share/{}"
+...
+...
+https://flamegraph.com/share/4672162e-a978-11ed-aa32-fa99570776b6
+```
+Finally, you can open the URL in your browser to view the flame graph.
+
+<imagen>
 
 ## Continuous Profiling a la Bash
 We can create a simple bash script to continuously profile our application and output the results to a file. 
