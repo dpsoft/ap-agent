@@ -19,9 +19,4 @@ public final class Agent {
             });
         });
     }
-
-    public static void main(String[] args) {
-        premain(null, null);
-        while (true) {}
-    }
 }
