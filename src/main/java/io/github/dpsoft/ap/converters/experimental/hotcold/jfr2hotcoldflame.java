@@ -44,7 +44,7 @@ import java.util.HashSet;
  */
 public class jfr2hotcoldflame {
 
-    private static final String[] FRAME_SUFFIX = {"_[j]", "_[j]", "_[i]", "", "", "_[k]"};
+    private static final String[] FRAME_SUFFIX = {"_[0]", "_[j]", "_[i]", "", "", "_[k]", "_[1]"};
 
     private final JfrReader jfr;
     private final Dictionary<String> methodNames = new Dictionary<>();

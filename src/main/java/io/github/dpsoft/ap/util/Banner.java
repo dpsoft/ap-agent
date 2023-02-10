@@ -2,14 +2,14 @@ package io.github.dpsoft.ap.util;
 
 import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.github.dpsoft.ap.functions.Functions;
+import io.vavr.control.Try;
+import org.tinylog.Logger;
 
-import java.io.*;
 import java.util.Map;
 import java.util.Scanner;
 
 public final class Banner {
-
-    public static void show(AgentConfiguration configuration) throws IOException {
+    public static void show(AgentConfiguration configuration) {
         if (configuration.showBanner()) {
             final var version = (BuildInfo.version() == null ? "" : " v" + BuildInfo.version() + "");
             final var loaderVersion = (BuildInfo.apLoaderVersion() == null ? "" : "v" + BuildInfo.apLoaderVersion() + "");
@@ -19,7 +19,7 @@ public final class Banner {
 
             final var substitutor = new StrSubstitutor(Map.of("welcome", welcomeMessage, "powered", poweredByMessage));
 
-            try (var stream = Banner.class.getResourceAsStream("/banner.txt")) {
+            Try.withResources(() -> Banner.class.getResourceAsStream("/banner.txt")).of((stream) -> {
                 final var banner = substitutor.replace(new String(stream.readAllBytes()));
                 final var scanner = new Scanner(banner);
 
@@ -34,7 +34,9 @@ public final class Banner {
                     System.out.println(line);
                 }
                 System.out.println();
-            }
+                return null; // void :(
+
+            }).onFailure((error) -> Logger.warn(error, () -> "It has not been possible to show the banner."));
         }
     }
 

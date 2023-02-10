@@ -18,7 +18,8 @@ java -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
 The endpoint accepts the following parameters:
 
 * `event`: The type of event to profile (e.g. `cpu`, `itimer`, `wall`)
-* `output`: The desired output format (e.g. `flamegraph`, `hotcold`, `jfr`, `pprof`, `fp`)
+* `output`: The desired output format (e.g. `flamegraph`, `hotcold`, `jfr`, `pprof`, `collapsed`, `fp`)
+* `params`: Additional parameters to pass to the flame graph (e.g. `simple`, `title=My Title`, `threads`, `reverse`)
 * `duration`: The length of time to profile for (in seconds)
 
 ### Flame Graph
@@ -33,6 +34,32 @@ For example, the following API call would be used: `http://localhost:8080/profil
 
 ![image](https://user-images.githubusercontent.com/2567525/217419824-5d982e67-8175-4239-9b42-c7dbe58dd452.png)
 
+### Flame Graph from Collapsed Stack Traces
+The collapsed stack trace format is a collection of call stacks, where each line represents a semicolon-separated list of frames followed by a counter. The frames represent the function calls in the stack and the counter indicates how many times that particular stack has been executed.
+
+The format is as follows:
+```shell
+main;run;doSomething;processData;readFile;open;readBytes:5
+main;run;doSomething;processData;readFile;open;readBytes:3
+main;run;doSomething;processData;readFile;open;readBytes:2
+main;run;doSomething;processData;readFile;close:1
+main;run;doSomething;processData;writeFile;open;writeBytes:4
+main;run;doSomething;processData;writeFile;close:1
+```
+
+To generate a flame graph from the collapsed stack trace format, and share it easily using [flamegraph.com], you can use the following command:
+
+```shell
+curl http://localhost:8080/profiler/profile?event=cpu&output=collapsed&duration=30 | curl --data-binary @- https://flamegraph.com | jq -r '."url"' 
+...
+...
+https://flamegraph.com/share/4672162e-a978-11ed-aa32-fa99570776b6
+```
+Finally, you can open the URL in your browser to view the flame graph.
+
+![image](https://user-images.githubusercontent.com/2567525/218182805-34568aa7-71ae-420e-9385-1b788918956b.png)
+
+<imagen>
 
 ## Continuous Profiling a la Bash
 We can create a simple bash script to continuously profile our application and output the results to a file. 
@@ -154,3 +181,4 @@ This code base is available ander the Apache License, version 2.
 [AP-Loader]: https://github.com/jvm-profiling-tools/ap-loader
 [Async Profiler]: https://github.com/jvm-profiling-tools/async-profiler
 [pprof]: https://go.dev/blog/pprof
+[flamegraph.com]:https://flamegraph.com/
