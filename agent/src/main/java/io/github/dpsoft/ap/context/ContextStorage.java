@@ -16,6 +16,7 @@ public final class ContextStorage {
     private final Storage storage = new ThreadLocalStorage();
 
     public Context currentContext() { return storage.current();}
+
     public Storage.Scope storeContext(Context context) { return storage.store(context); }
 
     public <T> T runWithContext(Context context, Callable<T> callable) {

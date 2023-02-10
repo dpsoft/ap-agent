@@ -1,5 +1,8 @@
 package io.github.dpsoft.ap.context.api;
 
+/**
+ * This interface is used to define the storage of the current context.
+ */
 public interface Storage {
     Context current();
 
@@ -7,7 +10,6 @@ public interface Storage {
 
     interface Scope extends AutoCloseable {
         Context context();
-
         void close();
 
         enum Empty implements Scope {
@@ -28,8 +30,6 @@ public interface Storage {
         public Context current() { return Context.EMPTY; }
 
         @Override
-        public Scope store(Context context) {
-            return Scope.Empty.INSTANCE;
-        }
+        public Scope store(Context context) { return Scope.Empty.INSTANCE; }
     }
 }
