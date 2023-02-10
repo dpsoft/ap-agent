@@ -36,6 +36,16 @@ For example, the following API call would be used: `http://localhost:8080/profil
 ### Flame Graph from Collapsed Stack Traces
 The collapsed stack trace format is a collection of call stacks, where each line represents a semicolon-separated list of frames followed by a counter. The frames represent the function calls in the stack and the counter indicates how many times that particular stack has been executed.
 
+The format is as follows:
+```shell
+main;run;doSomething;processData;readFile;open;readBytes:5
+main;run;doSomething;processData;readFile;open;readBytes:3
+main;run;doSomething;processData;readFile;open;readBytes:2
+main;run;doSomething;processData;readFile;close:1
+main;run;doSomething;processData;writeFile;open;writeBytes:4
+main;run;doSomething;processData;writeFile;close:1
+```
+
 To generate a flame graph from the collapsed stack trace format, and share it easily using [flamegraph.com], you can use the following command:
 
 ```shell
