@@ -7,7 +7,7 @@
     <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent-multi</artifactId>
     <packaging>pom</packaging>
-    <version>0.1.1-SNAPSHOT</version>
+    <version>0.1.2-SNAPSHOT</version>
 
     <properties>
         <java.version>11</java.version>
