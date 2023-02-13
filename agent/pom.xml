@@ -74,18 +74,23 @@
             <artifactId>byte-buddy</artifactId>
             <version>1.12.22</version>
         </dependency>
-
-        <dependency>
-            <groupId>net.bytebuddy</groupId>
-            <artifactId>byte-buddy-agent</artifactId>
-            <version>1.12.22</version>
-        </dependency>
-
         <dependency>
             <groupId>io.github.dpsoft.ap</groupId>
             <artifactId>context-api</artifactId>
             <version>0.1.2-SNAPSHOT</version>
 <!--            <scope>provided</scope>-->
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <version>5.9.2</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>1.12.22</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>

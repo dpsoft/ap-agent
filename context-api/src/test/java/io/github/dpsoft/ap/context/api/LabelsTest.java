@@ -1,5 +1,6 @@
 package io.github.dpsoft.ap.context.api;
 
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
 import java.util.Map;
@@ -8,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class LabelsTest {
         @Test
+        @DisplayName("`Labels.of` should create a new instance with one label")
          void test() {
             final var labels = Labels.of("a", "b").withLabel("c", "d");
             assertEquals(2, labels.all().size());
