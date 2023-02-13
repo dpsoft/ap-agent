@@ -8,7 +8,7 @@ import org.tinylog.Logger;
  * Default implementation of {@link Storage} that stores the context in a {@link ThreadLocal}.
  */
 public class ThreadLocalStorage implements Storage {
-    private final ThreadLocal<Context> tls = ThreadLocal.withInitial(Context::empty);
+    private final ThreadLocal<Context> tls = ThreadLocal.withInitial(() -> Context.EMPTY);
 
     @Override
     public Context current() { return tls.get(); }

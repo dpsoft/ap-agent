@@ -24,10 +24,6 @@ public final class Context {
         return new Context(Map.of(key.name, value), labels);
     }
 
-    public static Context empty() {
-        return EMPTY;
-    }
-
     private Context(Map<String, Object> underling, Labels labels) {
         this.labels = labels;
         this._underlying = underling;
