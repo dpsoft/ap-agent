@@ -17,8 +17,9 @@ public class ThreadLocalStorage implements Storage {
     public Scope store(Context context) {
         final var previous = tls.get();
         tls.set(context);
-        Logger.info("store::AsyncProfiler.setContextId(" + context.contextId + ")");
+        Logger.info("store::AsyncProfiler.setContextId(" + context.get(Context.ContextID) + ")");
         //AsyncProfiler.setContextId(context.contextId);
+
         return new Scope() {
             @Override
             public Context context() {
@@ -28,7 +29,7 @@ public class ThreadLocalStorage implements Storage {
             @Override
             public void close() {
                 tls.set(previous);
-                Logger.info("close::AsyncProfiler.setContextId(" + context.contextId + ")");
+                Logger.info("close::AsyncProfiler.setContextId(" + context.get(Context.ContextID) + ")");
                 //AsyncProfiler.setContextId(context.contextId);
             }
         };

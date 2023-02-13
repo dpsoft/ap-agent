@@ -31,6 +31,11 @@
             <name>Maven central</name>
             <url>https://repo.maven.apache.org/maven2/</url>
         </repository>
+        <repository>
+            <id>local</id>
+            <name>Maven local</name>
+            <url>file:////home/diego/.m2/repository</url>
+        </repository>
     </repositories>
 
     <dependencies>
@@ -70,17 +75,17 @@
             <version>1.12.22</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>net.bytebuddy</groupId>-->
-<!--            <artifactId>byte-buddy-agent</artifactId>-->
-<!--            <version>1.12.22</version>-->
-<!--        </dependency>-->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy-agent</artifactId>
+            <version>1.12.22</version>
+        </dependency>
 
         <dependency>
-            <groupId>io.github.dspoft.ap</groupId>
+            <groupId>io.github.dpsoft.ap</groupId>
             <artifactId>context-api</artifactId>
-            <version>0.1.1-SNAPSHOT</version>
-            <scope>provided</scope>
+            <version>0.1.2-SNAPSHOT</version>
+<!--            <scope>provided</scope>-->
         </dependency>
     </dependencies>
     <build>

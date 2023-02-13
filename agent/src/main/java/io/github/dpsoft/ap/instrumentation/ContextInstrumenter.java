@@ -12,7 +12,7 @@ import net.bytebuddy.utility.JavaModule;
 import org.tinylog.Logger;
 
 import java.lang.instrument.Instrumentation;
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import static net.bytebuddy.matcher.ElementMatchers.*;
 
@@ -37,11 +37,11 @@ public final class ContextInstrumenter {
 
     public static class ContextHandlerInterceptor {
         @RuntimeType
-        public static Object onRunWithContext(Context context, Callable<?> callable) { return ContextStorage.INSTANCE.runWithContext(context, callable);}
+        public static Object runWithContext0(Context context, Supplier<?> supplier) { return ContextStorage.INSTANCE.runWithContext(context, supplier);}
         @RuntimeType
-        public static Context onCurrentContext() { return ContextStorage.INSTANCE.currentContext();}
+        public static Context currentContext0() { return ContextStorage.INSTANCE.currentContext();}
         @RuntimeType
-        public static Object onStoreContext(Context context) {
+        public static Object storeContext0(Context context) {
             return ContextStorage.INSTANCE.storeContext(context);
         }
     }

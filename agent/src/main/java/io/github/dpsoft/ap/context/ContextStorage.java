@@ -2,10 +2,7 @@ package io.github.dpsoft.ap.context;
 
 import io.github.dpsoft.ap.context.api.Context;
 import io.github.dpsoft.ap.context.api.Storage;
-import io.vavr.control.Try;
-import org.tinylog.Logger;
-
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 /**
  * This class is used to store and retrieve the current context.
@@ -19,10 +16,14 @@ public final class ContextStorage {
 
     public Storage.Scope storeContext(Context context) { return storage.store(context); }
 
-    public <T> T runWithContext(Context context, Callable<T> callable) {
-        return Try.withResources(() -> storeContext(context))
-                  .of(scope -> callable.call())
-                  .onFailure((cause) -> Logger.error(cause, "Error running callable with context"))
-                  .get();
+    public <T> T runWithContext(Context context, Supplier<T> thunk) {
+        try (var ignored = storeContext(context)) {
+            return thunk.get();
+        }
+    }
+    public void runWitContext(Context context, Runnable runnable) {
+        try (var ignored = storeContext(context)) {
+            runnable.run();
+        }
     }
 }
