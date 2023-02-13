@@ -29,7 +29,7 @@ public class ThreadLocalStorage implements Storage {
             @Override
             public void close() {
                 tls.set(previous);
-                Logger.info("close::AsyncProfiler.setContextId(" + context.get(Context.ContextID) + ")");
+                Logger.info("close::AsyncProfiler.setContextId(" + previous.get(Context.ContextID) + ")");
                 //AsyncProfiler.setContextId(context.contextId);
             }
         };
