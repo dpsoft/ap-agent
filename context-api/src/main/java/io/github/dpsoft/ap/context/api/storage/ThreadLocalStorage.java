@@ -9,10 +9,10 @@ import io.github.dpsoft.ap.context.api.context.Context;
 public class ThreadLocalStorage implements Storage {
     private final ThreadLocal<Context> tls = ThreadLocal.withInitial(() -> Context.EMPTY);
 
-    private final ContextStorageListener listener;
+    private final ContextStorageListener storageListener;
 
-    public ThreadLocalStorage(ContextStorageListener listener) {
-        this.listener = listener;
+    public ThreadLocalStorage(ContextStorageListener storageListener) {
+        this.storageListener = storageListener;
     }
 
     @Override
@@ -22,7 +22,7 @@ public class ThreadLocalStorage implements Storage {
     public Scope store(Context context) {
         final var previous = tls.get();
         tls.set(context);
-        listener.onContextStored(context);
+        storageListener.onContextStored(context);
         return new Scope() {
             @Override
             public Context context() { return context; }
@@ -30,7 +30,7 @@ public class ThreadLocalStorage implements Storage {
             @Override
             public void close() {
                 tls.set(previous);
-                listener.onContextRestored(previous);
+                storageListener.onContextRestored(previous);
             }
         };
     }

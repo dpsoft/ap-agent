@@ -30,7 +30,6 @@ public class ContextHandler  {
             return supplier.get();
         }
     }
-
     /**
      * Runs the given runnable with the given context.
      * The context is restored after the runnable returns.

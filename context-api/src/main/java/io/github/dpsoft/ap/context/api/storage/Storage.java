@@ -44,14 +44,4 @@ public interface Storage {
             public void close() { }
         }
     }
-
-    enum Empty implements Storage {
-        INSTANCE;
-
-        @Override
-        public Context current() { return Context.EMPTY; }
-
-        @Override
-        public Scope store(Context context) { return Scope.Empty.INSTANCE; }
-    }
 }
