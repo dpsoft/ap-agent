@@ -2,6 +2,7 @@ package io.github.dpsoft.ap.context.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 public final class Context {
     public static final Context EMPTY = new Context(Map.of(), Labels.EMPTY);
@@ -36,6 +37,15 @@ public final class Context {
 
         return new Context(x, labels);
     }
+
+    public <T> Context withTag(String key, String value) {
+        return new Context(_underlying, labels.withLabel(key, value));
+    }
+
+    public Labels labels() {
+        return labels;
+    }
+
 
     public <T> T get(Context.Key<T> key) {
         return (T) _underlying.getOrDefault(key.name, key.emptyValue);

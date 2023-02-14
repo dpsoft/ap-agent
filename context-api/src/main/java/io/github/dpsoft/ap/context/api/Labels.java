@@ -2,6 +2,7 @@ package io.github.dpsoft.ap.context.api;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,12 @@ public final class Labels {
                 .stream()
                 .map(e -> new Label(e.getKey(), e.getValue()))
                 .collect(Collectors.toSet());
+    }
+
+    public Optional<Label> get(String key) {
+        return Optional
+                .ofNullable(_underlying.get(key))
+                .map(value -> new Label(key, value));
     }
 
     public static class Label {

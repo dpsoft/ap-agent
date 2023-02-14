@@ -30,4 +30,11 @@ public class ContextTest {
         var context = Context.of(stringKey, "c", Labels.of("a", "b")).withEntry(stringKey, "d");
         assert context.get(stringKey).equals("d");
     }
+
+    @Test
+    public void test5() {
+        var stringKey = Context.key("a", "b");
+        var context = Context.of(stringKey, "c", Labels.of("a", "b")).withEntry(stringKey, "d");
+        assert context.labels().get("a").get().key.equals("a");
+    }
 }

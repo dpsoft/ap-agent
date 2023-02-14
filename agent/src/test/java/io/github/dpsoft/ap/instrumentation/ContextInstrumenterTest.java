@@ -13,7 +13,8 @@ class ContextInstrumenterTest {
     void instrument() {
         Agent.premain(null, ByteBuddyAgent.install());
 
-        var context = ContextHandler.runWithContext(Context.of(Context.ContextID, 1L, Labels.of("a", "b")), ContextHandler::currentContext);
+        final var contextTest = Context.of(Context.ContextID, 1L, Labels.of("a", "b"));
+        final var context = ContextHandler.runWithContext(contextTest, ContextHandler::currentContext);
 
         Assertions.assertEquals(context.get(Context.ContextID), 1L);
         Assertions.assertEquals(ContextHandler.currentContext().get(Context.ContextID), 0L);
