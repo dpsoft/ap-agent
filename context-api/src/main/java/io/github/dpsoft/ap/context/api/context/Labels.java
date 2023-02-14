@@ -1,4 +1,4 @@
-package io.github.dpsoft.ap.context.api;
+package io.github.dpsoft.ap.context.api.context;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -8,10 +8,10 @@ import java.util.stream.Collectors;
 
 public final class Labels {
     public final static Labels EMPTY = new Labels(Map.of());
-    private final Map<String, String> _underlying;
+    private final Map<String, String> underlying;
 
     private Labels(Map<String, String> underlying) {
-        this._underlying =  underlying;
+        this.underlying =  underlying;
     }
 
     public static Labels from(Map<String, String> underlying) {
@@ -23,15 +23,15 @@ public final class Labels {
     }
 
     public Labels withLabel(String key, String value) {
-        var mergedMap = new HashMap<String, String>(_underlying.size() + 1);
-        mergedMap.putAll(_underlying);
+        var mergedMap = new HashMap<String, String>(underlying.size() + 1);
+        mergedMap.putAll(underlying);
         mergedMap.put(key, value);
 
         return new Labels(mergedMap);
     }
 
     public Set<Label> all() {
-        return _underlying.entrySet()
+        return underlying.entrySet()
                 .stream()
                 .map(e -> new Label(e.getKey(), e.getValue()))
                 .collect(Collectors.toSet());
@@ -39,7 +39,7 @@ public final class Labels {
 
     public Optional<Label> get(String key) {
         return Optional
-                .ofNullable(_underlying.get(key))
+                .ofNullable(underlying.get(key))
                 .map(value -> new Label(key, value));
     }
 

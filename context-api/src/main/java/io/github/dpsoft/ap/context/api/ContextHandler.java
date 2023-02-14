@@ -1,6 +1,10 @@
 package io.github.dpsoft.ap.context.api;
 
 
+import io.github.dpsoft.ap.context.api.context.Context;
+import io.github.dpsoft.ap.context.api.storage.ContextStorage;
+import io.github.dpsoft.ap.context.api.storage.Storage;
+
 import java.util.function.Supplier;
 
 /**
@@ -11,11 +15,11 @@ public class ContextHandler  {
     /**
      * Returns the current context.
      */
-    public static Context currentContext() { return Context.EMPTY; }
+    public static Context currentContext() { return ContextStorage.INSTANCE.currentContext();}
     /**
      * Stores the current context and returns a scope that can be used to restore it.
      */
-    public static Storage.Scope storeContext(Context context) { return Storage.Scope.Empty.INSTANCE;}
+    public static Storage.Scope storeContext(Context context) { return ContextStorage.INSTANCE.storeContext(context);}
 
     /**
      * Runs the given supplier with the given context.

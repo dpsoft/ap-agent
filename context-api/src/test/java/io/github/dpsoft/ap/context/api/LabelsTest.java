@@ -1,5 +1,6 @@
 package io.github.dpsoft.ap.context.api;
 
+import io.github.dpsoft.ap.context.api.context.Labels;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 

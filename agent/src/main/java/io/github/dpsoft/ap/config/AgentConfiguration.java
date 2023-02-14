@@ -12,16 +12,12 @@ public final class AgentConfiguration {
 
     public final Server server;
     public final Handler handler;
-
-    public Instrumenter instrumenter;
-
     public final boolean showBanner;
 
 
     private AgentConfiguration(Config config) {
         this.server = new Server(config);
         this.handler = new Handler(config);
-        this.instrumenter = new Instrumenter(config);
         this.showBanner = config.getBoolean("show-banner");
     }
 
@@ -51,17 +47,6 @@ public final class AgentConfiguration {
         }
 
         public String context() { return isGoMode() ? goContext : context;}
-    }
-
-    public static class Instrumenter {
-        public final boolean enabled;
-        public Instrumenter(Config config) {
-            this.enabled = config.getBoolean("context-instrumenter.enabled");
-        }
-
-        public boolean shouldInstall() {
-            return enabled;
-        }
     }
 
     public boolean showBanner() {

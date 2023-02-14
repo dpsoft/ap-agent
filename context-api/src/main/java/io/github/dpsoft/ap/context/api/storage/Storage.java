@@ -1,4 +1,6 @@
-package io.github.dpsoft.ap.context.api;
+package io.github.dpsoft.ap.context.api.storage;
+
+import io.github.dpsoft.ap.context.api.context.Context;
 
 /**
  * A temporary space to store a Context instance.
@@ -15,7 +17,7 @@ public interface Storage {
     Storage.Scope store(Context context);
 
     /**
-     * Encapsulates the extend during which a Context is held by a Storage implementation. Once a Scope is closed, the
+     * Encapsulates the extent during which a Context is held by a Storage implementation. Once a Scope is closed, the
      * Context will be removed from the Storage that created the Scope.
      */
     interface Scope extends AutoCloseable {

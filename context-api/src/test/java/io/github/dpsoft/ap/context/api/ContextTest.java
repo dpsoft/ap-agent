@@ -1,5 +1,7 @@
 package io.github.dpsoft.ap.context.api;
 
+import io.github.dpsoft.ap.context.api.context.Context;
+import io.github.dpsoft.ap.context.api.context.Labels;
 import org.junit.jupiter.api.Test;
 
 public class ContextTest {

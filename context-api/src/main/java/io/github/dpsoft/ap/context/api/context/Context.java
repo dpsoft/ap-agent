@@ -1,15 +1,14 @@
-package io.github.dpsoft.ap.context.api;
+package io.github.dpsoft.ap.context.api.context;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Set;
 
 public final class Context {
     public static final Context EMPTY = new Context(Map.of(), Labels.EMPTY);
 
     public static final Context.Key<Long> ContextID = new Context.Key<>("contextId", 0L);
 
-    private final Map<String, Object> _underlying;
+    private final Map<String, Object> underlying;
 
     private final Labels labels;
 
@@ -27,19 +26,19 @@ public final class Context {
 
     private Context(Map<String, Object> underling, Labels labels) {
         this.labels = labels;
-        this._underlying = underling;
+        this.underlying = underling;
     }
 
     public <T> Context withEntry(Context.Key<T> key, T value) {
-        var x = new HashMap<String, Object>(_underlying.size() + 1);
-        x.putAll(_underlying);
+        var x = new HashMap<String, Object>(underlying.size() + 1);
+        x.putAll(underlying);
         x.put(key.name, value);
 
         return new Context(x, labels);
     }
 
     public <T> Context withTag(String key, String value) {
-        return new Context(_underlying, labels.withLabel(key, value));
+        return new Context(underlying, labels.withLabel(key, value));
     }
 
     public Labels labels() {
@@ -48,7 +47,7 @@ public final class Context {
 
 
     public <T> T get(Context.Key<T> key) {
-        return (T) _underlying.getOrDefault(key.name, key.emptyValue);
+        return (T) underlying.getOrDefault(key.name, key.emptyValue);
     }
 
     public static <T> Context.Key<T> key(String name, T emptyValue) {

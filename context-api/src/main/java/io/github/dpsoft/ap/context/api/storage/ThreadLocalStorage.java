@@ -1,14 +1,19 @@
-package io.github.dpsoft.ap.context;
+package io.github.dpsoft.ap.context.api.storage;
 
-import io.github.dpsoft.ap.context.api.Context;
-import io.github.dpsoft.ap.context.api.Storage;
-import org.tinylog.Logger;
+
+import io.github.dpsoft.ap.context.api.context.Context;
 
 /**
  * Default implementation of {@link Storage} that stores the context in a {@link ThreadLocal}.
  */
 public class ThreadLocalStorage implements Storage {
     private final ThreadLocal<Context> tls = ThreadLocal.withInitial(() -> Context.EMPTY);
+
+    private final ContextStorageListener listener;
+
+    public ThreadLocalStorage(ContextStorageListener listener) {
+        this.listener = listener;
+    }
 
     @Override
     public Context current() { return tls.get(); }
@@ -17,20 +22,15 @@ public class ThreadLocalStorage implements Storage {
     public Scope store(Context context) {
         final var previous = tls.get();
         tls.set(context);
-        Logger.info("store::AsyncProfiler.setContextId(" + context.get(Context.ContextID) + ")");
-        //AsyncProfiler.setContextId(context.contextId);
-
+        listener.onContextStored(context);
         return new Scope() {
             @Override
-            public Context context() {
-                return context;
-            }
+            public Context context() { return context; }
 
             @Override
             public void close() {
                 tls.set(previous);
-                Logger.info("close::AsyncProfiler.setContextId(" + previous.get(Context.ContextID) + ")");
-                //AsyncProfiler.setContextId(context.contextId);
+                listener.onContextRestored(previous);
             }
         };
     }
