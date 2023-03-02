@@ -1,176 +1,25 @@
-<?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0"
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <groupId>io.github.dpsoft</groupId>
-    <artifactId>ap-agent</artifactId>
+    <artifactId>ap-agent-multi</artifactId>
+    <packaging>pom</packaging>
     <version>0.1.2-SNAPSHOT</version>
-    <packaging>jar</packaging>
+
     <properties>
-        <me.bechberger.ap-loader.version>2.9-4</me.bechberger.ap-loader.version>
-        <io.vavr.version>0.10.3</io.vavr.version>
-        <com.typesafe.config.version>1.4.2</com.typesafe.config.version>
-        <org.tinylog.version>2.5.0</org.tinylog.version>
-        <me.bechberger.version>0.0.2-SNAPSHOT</me.bechberger.version>
+        <java.version>11</java.version>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>oss-snapshots</id>
-            <name>Oss Snapshots</name>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>maven-central</id>
-            <name>Maven central</name>
-            <url>https://repo.maven.apache.org/maven2/</url>
-        </repository>
-    </repositories>
+    <modules>
+        <module>agent</module>
+        <module>context-api</module>
+    </modules>
 
-    <dependencies>
-        <dependency>
-            <groupId>me.bechberger</groupId>
-            <artifactId>ap-loader-all</artifactId>
-            <version>${me.bechberger.ap-loader.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vavr</groupId>
-            <artifactId>vavr</artifactId>
-            <version>${io.vavr.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>com.typesafe</groupId>
-            <artifactId>config</artifactId>
-            <version>${com.typesafe.config.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>tinylog-api</artifactId>
-            <version>${org.tinylog.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.tinylog</groupId>
-            <artifactId>tinylog-impl</artifactId>
-            <version>${org.tinylog.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>me.bechberger</groupId>
-            <artifactId>jfrtofp</artifactId>
-            <version>${me.bechberger.version}</version>
-        </dependency>
-    </dependencies>
     <build>
-        <resources>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>true</filtering>
-                <includes>
-                    <include>**/build-info.properties</include>
-                </includes>
-            </resource>
-            <resource>
-                <directory>src/main/resources</directory>
-                <filtering>false</filtering>
-                <excludes>
-                    <exclude>**/build-info.properties</exclude>
-                </excludes>
-            </resource>
-        </resources>
         <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-shade-plugin</artifactId>
-                <version>3.4.1</version>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>shade</goal>
-                        </goals>
-                        <configuration>
-                            <createDependencyReducedPom>true</createDependencyReducedPom>
-                            <dependencyReducedPomLocation>${project.build.directory}/dependency-reduced-pom.xml</dependencyReducedPomLocation>
-                            <minimizeJar>true</minimizeJar>
-                            <artifactSet>
-                                <excludes>
-                                    <exclude>org.codehaus.mojo</exclude>
-                                </excludes>
-                            </artifactSet>
-                            <transformers>
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-                                    <manifestEntries>
-                                        <Premain-Class>io.github.dpsoft.ap.Agent</Premain-Class>
-                                    </manifestEntries>
-                                </transformer>
-                                <transformer
-                                    implementation="org.apache.maven.plugins.shade.resource.ServicesResourceTransformer"/>
-                            </transformers>
-                            <filters>
-                                <filter>
-                                    <artifact>*:*</artifact>
-                                    <excludes>
-                                        <exclude>META-INF/maven/**</exclude>
-                                        <exclude>META-INF/*.SF</exclude>
-                                        <exclude>META-INF/*.DSA</exclude>
-                                        <exclude>META-INF/*.RSA</exclude>
-                                        <exclude>META-INF/*.md</exclude>
-                                        <exclude>META-INF/LICENSE</exclude>
-                                    </excludes>
-                                </filter>
-                            </filters>
-                            <relocations>
-                                <relocation>
-                                    <pattern>com.typesafe.config</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.com.typesafe.config</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>io.vavr</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.io.vavr</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.tinylog</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.org.tinylog</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>one</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.one</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>dev.dirs</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.dev.dirs</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>me.bechberger</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.me.bechberger</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>kotlin</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.kotlin</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>kotlinx</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.kotlinx</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.jetbrains</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.org.jetbrains</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.jline</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.org.jline</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.objectweb</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.org.objectweb</shadedPattern>
-                                </relocation>
-                            </relocations>
-                        </configuration>
-                    </execution>
-                </executions>
-            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>

@@ -14,6 +14,7 @@ public final class AgentConfiguration {
     public final Handler handler;
     public final boolean showBanner;
 
+
     private AgentConfiguration(Config config) {
         this.server = new Server(config);
         this.handler = new Handler(config);
