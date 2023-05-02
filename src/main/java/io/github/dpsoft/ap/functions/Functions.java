@@ -16,6 +16,7 @@ public final class Functions {
     public static Map<String, String> splitQueryParams(URI uri) {
         final var queryPairs = new HashMap<String, String>();
         final var query = uri.getQuery();
+        if (query == null) { return queryPairs; }
         final var pairs = query.split("&");
 
         for (String pair : pairs) {
@@ -31,5 +32,10 @@ public final class Functions {
         final var strBuilder = new StringBuilder(str);
         for (var i = strBuilder.length(); i <= length; i++) { strBuilder.append(" "); }
         return strBuilder.toString();
+    }
+
+    public static String lastSegment(String path) {
+        final var lastSlash = path.lastIndexOf("/");
+        return path.substring(lastSlash + 1);
     }
 }

@@ -14,7 +14,7 @@ public final class Agent {
             Banner.show(configuration);
 
             Server.with(configuration, (server) -> {
-                final var profilerHandler = new AsyncProfilerHandler(profiler, configuration.handler);
+                final var profilerHandler = new AsyncProfilerHandler(profiler, configuration);
                 server.createContext("/", profilerHandler);
             });
         });

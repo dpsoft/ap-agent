@@ -7,16 +7,21 @@ import com.typesafe.config.ConfigParseOptions;
 import io.vavr.control.Try;
 import org.tinylog.Logger;
 
+import java.util.HashSet;
+import java.util.Set;
+
 public final class AgentConfiguration {
     private static final AgentConfiguration INSTANCE = new AgentConfiguration(loadConfig());
 
     public final Server server;
     public final Handler handler;
+    public final Profiler profiler;
     public final boolean showBanner;
 
     private AgentConfiguration(Config config) {
         this.server = new Server(config);
         this.handler = new Handler(config);
+        this.profiler = new Profiler(config);
         this.showBanner = config.getBoolean("show-banner");
     }
 
@@ -30,22 +35,30 @@ public final class AgentConfiguration {
         }
     }
 
+    public static class Profiler {
+        public final String interval;
+
+        public Profiler(Config config) {
+            this.interval = config.getString("profiler.interval");
+        }
+    }
+
     public static class Handler {
-        public final boolean goMode;
-        public final String goContext;
-        public final String context;
+        private final boolean goMode;
+        private final Set<String> goContext;
+        private final Set<String> context;
 
         public Handler(Config config) {
             this.goMode = config.getBoolean("handler.go-mode");
-            this.goContext = config.getString("handler.go-context");
-            this.context = config.getString("handler.context");
+            this.goContext = new HashSet<>(config.getStringList("handler.go-context"));
+            this.context = new HashSet<>(config.getStringList("handler.context"));
         }
 
         public boolean isGoMode() {
             return goMode;
         }
 
-        public String context() { return isGoMode() ? goContext : context;}
+        public Set<String> context() { return isGoMode() ? goContext : context;}
     }
 
     public boolean showBanner() {
