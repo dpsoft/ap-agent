@@ -15,9 +15,9 @@ import java.net.HttpURLConnection;
 
 public class AsyncProfilerHandler implements HttpHandler {
     private final AsyncProfiler asyncProfiler;
-    private final AgentConfiguration.Handler configuration;
+    private final AgentConfiguration configuration;
 
-    public AsyncProfilerHandler(AsyncProfiler profiler, AgentConfiguration.Handler configuration) {
+    public AsyncProfilerHandler(AsyncProfiler profiler, AgentConfiguration configuration) {
         this.asyncProfiler = profiler;
         this.configuration = configuration;
     }
@@ -26,7 +26,7 @@ public class AsyncProfilerHandler implements HttpHandler {
     public void handle(HttpExchange exchange) throws IOException {
         final var path = exchange.getRequestURI().getPath();
 
-        if (!path.equals(configuration.context())) {
+        if(!configuration.handler.context().contains(path)) {
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0L);
             exchange.close();
         } else {
@@ -34,9 +34,10 @@ public class AsyncProfilerHandler implements HttpHandler {
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
 
             final var queryParamsMap = Functions.splitQueryParams(exchange.getRequestURI());
-            final var command = Command.from(queryParamsMap, configuration);
+            final var operation = Functions.lastSegment(path);
+            final var command = Command.from(operation, queryParamsMap, configuration);
 
-            if(configuration.isGoMode() || Output.FIREFOX_PROFILER == command.output) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
+            if(configuration.handler.isGoMode() || Output.FIREFOX_PROFILER == command.output) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
 
             ProfilerExecutor
                     .with(asyncProfiler)

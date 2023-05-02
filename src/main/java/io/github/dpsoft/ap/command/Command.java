@@ -19,15 +19,20 @@ public class Command {
     public final String file;
     public final Output output;
 
-    public static Command from(Map<String, String> params, AgentConfiguration.Handler configuration) {
-        final var output = getOutput(params, configuration);
-        final var eventType = getEventType(params, output);
+    public static Command from(String operation, Map<String, String> params, AgentConfiguration configuration) {
+        final var output = getOutput(params, configuration.handler);
+        final var eventType = getEventType(operation, params, output, configuration.handler);
         final var duration = getDuration(params);
         final var eventParams = getEventParams(params);
-        final var interval = params.get("interval");
+        final var interval = getInterval(params, configuration.profiler);
         final var file = params.getOrDefault("file", "profile.jfr");
 
         return new Command(eventType, duration, eventParams, interval, file, output);
+    }
+
+    private static String getInterval(Map<String, String> params, AgentConfiguration.Profiler configuration) {
+        if(params.get("interval") != null) return params.get("interval");
+        return configuration.interval;
     }
 
     private Command(String eventType, Duration durationSeconds, List<String> eventParams, String interval, String file, Output output) {
@@ -47,7 +52,8 @@ public class Command {
                 .getOrElse(Output.JFR);
     }
 
-    private static String getEventType(Map<String, String> params, Output output) {
+    private static String getEventType(String segment, Map<String, String> params, Output output, AgentConfiguration.Handler configuration) {
+        if (configuration.isGoMode()) return GOProfileTypes.get(segment).getOrElse(GOProfileTypes.PROFILE).event();
         if (Output.HOT_COLD == output) return Events.WALL;
         return params.getOrDefault("event", Events.ITIMER);
     }
@@ -97,6 +103,30 @@ public class Command {
         public static Option<Output> get(String value) {
             return Option.ofOptional(Arrays.stream(Output.values())
                     .filter(output -> output.value.equals(value))
+                    .findFirst());
+        }
+    }
+
+    public enum GOProfileTypes {
+        PROFILE("profile", Events.ITIMER),
+        ALLOC("allocs", Events.ALLOC),
+        BLOCK("block", Events.LOCK);
+
+        private final String profile;
+        private final String event;
+
+        GOProfileTypes(String profile, String event) {
+            this.profile = profile;
+            this.event = event;
+        }
+
+        public String event() {
+            return event;
+        }
+
+        public static Option<GOProfileTypes> get(String value) {
+            return Option.ofOptional(Arrays.stream(GOProfileTypes.values())
+                    .filter(profile -> profile.profile.equals(value))
                     .findFirst());
         }
     }

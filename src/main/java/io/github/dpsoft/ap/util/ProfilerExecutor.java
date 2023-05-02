@@ -56,7 +56,7 @@ public final class ProfilerExecutor {
 
     public void pipeTo(OutputStream out, Command command) {
         final var result = Match(command.output).of(
-            Case($(is(Output.PPROF)), () -> toPProf(out)),
+            Case($(is(Output.PPROF)), () -> toPProf(command, out)),
             Case($(is(Output.JFR)), () -> toJFR(out)),
             Case($(is(Output.NFLX)), () -> toFlameScope(out)),
             Case($(isIn(Output.FLAME_GRAPH, Output.FLAME, Output.COLLAPSED, Output.HOT_COLD)), () -> toFlame(command, out)),
@@ -100,10 +100,11 @@ public final class ProfilerExecutor {
         });
     }
 
-    private Try<Void> toPProf(OutputStream out) {
+    private Try<Void> toPProf(Command command, OutputStream out) {
         return Try.run(() -> {
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
-                new jfr2pprof(reader).dump(outputStream);
+                final var profileType = command.eventType.equals(Events.ITIMER) ? jfr2pprof.TYPE_CPU : command.eventType;
+                new jfr2pprof(reader).dump(outputStream, profileType);
             }
         });
     }

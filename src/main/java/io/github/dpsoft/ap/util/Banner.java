@@ -19,7 +19,7 @@ public final class Banner {
 
             final var substitutor = new StrSubstitutor(Map.of("welcome", welcomeMessage, "powered", poweredByMessage));
 
-            Try.withResources(() -> Banner.class.getResourceAsStream("/banner.txt")).of((stream) -> {
+            Try.withResources(() -> Banner.class.getResourceAsStream("/agent-banner.txt")).of((stream) -> {
                 final var banner = substitutor.replace(new String(stream.readAllBytes()));
                 final var scanner = new Scanner(banner);
 
