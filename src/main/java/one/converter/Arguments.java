@@ -30,10 +30,10 @@ public class Arguments {
     double minwidth;
     int skip;
     boolean reverse;
-    boolean cpu;
-    boolean alloc;
+    public boolean cpu;
+    public boolean alloc;
     boolean live;
-    boolean lock;
+    public boolean lock;
     boolean threads;
     boolean total;
     boolean lines;
@@ -43,8 +43,8 @@ public class Arguments {
     public boolean collapsed;
     long from;
     long to;
-    String input;
-    String output;
+    public String input;
+    public String output;
 
     public Arguments(String... args) {
         for (int i = 0; i < args.length; i++) {

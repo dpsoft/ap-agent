@@ -1,4 +1,4 @@
-package one.converter;
+package io.github.dpsoft.ap.converters.experimental.pprof;
 
 /*
  * Copyright 2022 Andrei Pangin
@@ -16,6 +16,8 @@ package one.converter;
  * limitations under the License.
  */
 
+import one.converter.Arguments;
+import one.converter.FlameGraph;
 import one.jfr.ClassRef;
 import one.jfr.Dictionary;
 import one.jfr.JfrReader;
@@ -38,9 +40,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Convert a JFR file to pprof
  * <p>
- * Protobuf definition: https://github.com/google/pprof/blob/44fc4e887b6b0cfb196973bcdb1fab95f0b3a75b/proto/profile.proto
+ * Taken from the PR: <a href="https://github.com/async-profiler/async-profiler/pull/713">...</a>
+ * <p>
+ * All Credits to :
+ *       - @apangin for the original implementation in async-profiler.
+ *       - @NeQuissimus for the changes to support allocations and lock data.
+ *       - @cyriltovena for add period type from pprof.
+ *
  */
 public class jfr2pprof {
 

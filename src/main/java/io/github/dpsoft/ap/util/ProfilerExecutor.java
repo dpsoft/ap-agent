@@ -4,6 +4,7 @@ import io.github.dpsoft.ap.command.Command;
 import io.github.dpsoft.ap.command.Command.Output;
 import io.github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
 import io.github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
+import io.github.dpsoft.ap.converters.experimental.pprof.jfr2pprof;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 import one.converter.*;
@@ -103,7 +104,7 @@ public final class ProfilerExecutor {
     private Try<Void> toPProf(Command command, OutputStream out) {
         return Try.run(() -> {
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
-                final var profileType = command.eventType.equals(Events.ITIMER) ? jfr2pprof.TYPE_CPU : command.eventType;
+                final var profileType = command.eventType.equals(Events.ITIMER) ? io.github.dpsoft.ap.converters.experimental.pprof.jfr2pprof.TYPE_CPU : command.eventType;
                 new jfr2pprof(reader).dump(outputStream, profileType);
             }
         });
