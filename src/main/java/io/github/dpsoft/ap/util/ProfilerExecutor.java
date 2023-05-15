@@ -5,9 +5,7 @@ import io.github.dpsoft.ap.command.Command.Output;
 import io.github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
 import io.github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
 import io.github.dpsoft.ap.converters.experimental.pprof.jfr2pprof;
-import io.vavr.CheckedConsumer;
 import io.vavr.CheckedFunction0;
-import io.vavr.CheckedRunnable;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 import one.converter.*;
@@ -21,15 +19,11 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.OutputStream;
 import java.io.PrintStream;
-import java.nio.file.Paths;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
 import static io.vavr.API.*;
 import static io.vavr.Predicates.*;
-
-import me.bechberger.jfrtofp.processor.SimpleProcessor;
-import me.bechberger.jfrtofp.processor.Config;
 
 public final class ProfilerExecutor {
 
@@ -66,7 +60,6 @@ public final class ProfilerExecutor {
             Case($(is(Output.JFR)), () -> toJFR(out)),
             Case($(is(Output.NFLX)), () -> toFlameScope(out)),
             Case($(isIn(Output.FLAME_GRAPH, Output.FLAME, Output.COLLAPSED, Output.HOT_COLD)), () -> toFlame(command, out)),
-            Case($(is(Output.FIREFOX_PROFILER)), () -> toFirefoxProfiler(out)),
             Case($(isNull()), () -> toJFR(out)));
 
         result.andFinally(file::delete);
@@ -83,15 +76,6 @@ public final class ProfilerExecutor {
         return Try.run(() -> {
             try (var fileReader = new FileInputStream(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
                 fileReader.transferTo(outputStream);
-            }
-        });
-    }
-
-    private Try<Void> toFirefoxProfiler(OutputStream out) {
-        return Try.run(() -> {
-            final var processor = new SimpleProcessor(new Config(), Paths.get(file.getAbsolutePath()));
-            try (var outputStream = new PrintStream(out)) {
-                processor.processZipped(outputStream);
             }
         });
     }

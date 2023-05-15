@@ -10,7 +10,6 @@ import java.time.Duration;
 import java.util.Arrays;
 import java.util.Map;
 
-
 public class Command {
     public final String eventType;
     public final Duration durationSeconds;
@@ -95,8 +94,7 @@ public class Command {
         FLAME_GRAPH("flamegraph"),
         FLAME("flame"),
         COLLAPSED("collapsed"),
-        HOT_COLD("hotcold"),
-        FIREFOX_PROFILER("fp");
+        HOT_COLD("hotcold");
 
         private final String value;
 

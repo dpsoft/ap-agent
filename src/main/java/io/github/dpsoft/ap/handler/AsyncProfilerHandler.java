@@ -4,7 +4,6 @@ import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 import io.github.dpsoft.ap.util.ProfilerExecutor;
 import io.github.dpsoft.ap.command.Command;
-import io.github.dpsoft.ap.command.Command.Output;
 import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.github.dpsoft.ap.functions.Functions;
 import one.profiler.AsyncProfiler;
@@ -37,7 +36,7 @@ public class AsyncProfilerHandler implements HttpHandler {
             final var operation = Functions.lastSegment(path);
             final var command = Command.from(operation, queryParamsMap, configuration);
 
-            if(configuration.handler.isGoMode() || Output.FIREFOX_PROFILER == command.output) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
+            if(configuration.handler.isGoMode()) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
 
             ProfilerExecutor
                     .with(asyncProfiler, command)

@@ -13,7 +13,6 @@
         <io.vavr.version>0.10.4</io.vavr.version>
         <com.typesafe.config.version>1.4.2</com.typesafe.config.version>
         <org.tinylog.version>2.6.1</org.tinylog.version>
-        <me.bechberger.version>0.0.2-SNAPSHOT</me.bechberger.version>
     </properties>
 
     <repositories>
@@ -54,11 +53,6 @@
             <groupId>org.tinylog</groupId>
             <artifactId>tinylog-impl</artifactId>
             <version>${org.tinylog.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>me.bechberger</groupId>
-            <artifactId>jfrtofp</artifactId>
-            <version>${me.bechberger.version}</version>
         </dependency>
     </dependencies>
     <build>
@@ -141,30 +135,6 @@
                                 <relocation>
                                     <pattern>dev.dirs</pattern>
                                     <shadedPattern>io.github.dpsoft.ap.libs.dev.dirs</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>me.bechberger</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.me.bechberger</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>kotlin</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.kotlin</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>kotlinx</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.kotlinx</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.jetbrains</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.org.jetbrains</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.jline</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.org.jline</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>org.objectweb</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.org.objectweb</shadedPattern>
                                 </relocation>
                             </relocations>
                         </configuration>
