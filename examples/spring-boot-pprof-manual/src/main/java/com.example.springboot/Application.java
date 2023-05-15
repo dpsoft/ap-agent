@@ -8,7 +8,7 @@ public class Application {
 
     public static void main(String[] args) {
         //Simulate a workload
-        new Thread(new Something()).start();
+        new Thread(new MatrixMultiply()).start();
 
         SpringApplication.run(Application.class, args);
     }
