@@ -7,7 +7,7 @@ Async Profiler Agent is a minimal Java agent that allows you to proxy to [Async 
 
 
 ## Usage
-Download the [latest version](https://s01.oss.sonatype.org/service/local/repositories/releases/content/io/github/dpsoft/ap-agent/0.1.2/ap-agent-0.1.2.jar).
+Download the [latest version](https://s01.oss.sonatype.org/service/local/repositories/releases/content/io/github/dpsoft/ap-agent/0.1.3/ap-agent-0.1.3.jar).
 
 To use the `AP-Agent`, simply add it to the JVM startup. The agent exposes a REST API for profiling with the following endpoint: `http://localhost:8080/profiler/profile`.
 
@@ -90,7 +90,7 @@ Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:17
 Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:18:24 took 60 seconds.
 ```
 
-## Firefox Profiler (experimental)
+## Firefox Profiler ([experimental])
 
 1. [Examples](#examples)
 2. [Profiling results](#profiling-results)
@@ -237,3 +237,5 @@ This code base is available ander the Apache License, version 2.
 [pprof]: https://go.dev/blog/pprof
 [flamegraph.com]:https://flamegraph.com/
 [pprof.me]: https://pprof.me/
+[experimental]:  https://s01.oss.sonatype.org/content/repositories/releases/io/github/dpsoft/ap-agent-experimental/0.1.3/ap-agent-experimental-0.1.3.jar
+
