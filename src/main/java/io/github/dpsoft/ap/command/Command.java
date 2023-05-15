@@ -19,6 +19,10 @@ public class Command {
     public final String file;
     public final Output output;
 
+    public static Command from(String operation, Map<String, String> params){
+        return from(operation, params, AgentConfiguration.instance());
+    }
+
     public static Command from(String operation, Map<String, String> params, AgentConfiguration configuration) {
         final var output = getOutput(params, configuration.handler);
         final var eventType = getEventType(operation, params, output, configuration.handler);

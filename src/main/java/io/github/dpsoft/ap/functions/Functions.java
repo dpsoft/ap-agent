@@ -10,7 +10,6 @@ public final class Functions {
     /**
      * Splits a query string apart into its component name/value pairs
      *
-     * @param uri
      * @return a map of query parameters
      */
     public static Map<String, String> splitQueryParams(URI uri) {
