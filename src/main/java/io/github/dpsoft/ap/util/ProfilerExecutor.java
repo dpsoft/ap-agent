@@ -5,6 +5,9 @@ import io.github.dpsoft.ap.command.Command.Output;
 import io.github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
 import io.github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
 import io.github.dpsoft.ap.converters.experimental.pprof.jfr2pprof;
+import io.vavr.CheckedConsumer;
+import io.vavr.CheckedFunction0;
+import io.vavr.CheckedRunnable;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
 import one.converter.*;
@@ -34,19 +37,21 @@ public final class ProfilerExecutor {
 
     private final AsyncProfiler profiler;
     private final File file;
+    private final Command command;
 
-    public static ProfilerExecutor with(AsyncProfiler profiler) {
-        return new ProfilerExecutor(profiler);
+    public static ProfilerExecutor with(AsyncProfiler profiler, Command command){
+        return new ProfilerExecutor(profiler, command);
     }
 
-    private ProfilerExecutor(AsyncProfiler profiler) {
+    private ProfilerExecutor(AsyncProfiler profiler, Command command) {
         this.profiler = profiler;
+        this.command = command;
         this.file = Try.of(() -> File.createTempFile("ap-agent", ".jfr"))
                 .onSuccess(File::deleteOnExit)
                 .getOrElseThrow(() -> new RuntimeException("It has not been possible to create a temporal file for JFR."));
     }
 
-    public Try<ProfilerExecutor> run(Command command) {
+    public Try<ProfilerExecutor> run() {
         return Try.of(() -> {
             profiler.execute(command.asFormatString(file.getAbsolutePath()));
             Thread.sleep(command.getDuration().toMillis());
@@ -55,7 +60,7 @@ public final class ProfilerExecutor {
         });
     }
 
-    public void pipeTo(OutputStream out, Command command) {
+    public void pipeTo(OutputStream out) {
         final var result = Match(command.output).of(
             Case($(is(Output.PPROF)), () -> toPProf(command, out)),
             Case($(is(Output.JFR)), () -> toJFR(out)),
@@ -66,6 +71,12 @@ public final class ProfilerExecutor {
 
         result.andFinally(file::delete);
         result.onFailure(cause -> Logger.error(cause, "It has not been possible to pipe the profiler result to the output stream."));
+    }
+
+    public void pipeTo(CheckedFunction0<OutputStream> consumer) {
+        Try.of(consumer)
+                .onFailure(cause -> Logger.error(cause, "It has not been possible to create the output stream."))
+                .onSuccess(this::pipeTo);
     }
 
     private Try<Void> toJFR(OutputStream out){
