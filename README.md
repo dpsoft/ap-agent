@@ -59,8 +59,6 @@ Finally, you can open the URL in your browser to view the flame graph.
 
 ![image](https://user-images.githubusercontent.com/2567525/218182805-34568aa7-71ae-420e-9385-1b788918956b.png)
 
-<imagen>
-
 ## Continuous Profiling a la Bash
 We can create a simple bash script to continuously profile our application and output the results to a file. 
 
@@ -92,7 +90,7 @@ Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:17
 Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:18:24 took 60 seconds.
 ```
 
-## Firefox Profiler
+## Firefox Profiler (experimental)
 
 1. [Examples](#examples)
 2. [Profiling results](#profiling-results)
@@ -196,13 +194,13 @@ Yes, you can use the ap-agent as library, just add the following dependency to y
 
 ```xml
 <dependency>
-    <groupId>io.github.dpsoft.ap.Agent</groupId>
+    <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent</artifactId>
     <version>0.1.3</version>
 </dependency>
 ```
 
-and then, you can use the API as follows(spring-boot controller example))):
+and then, you can use the API as follows(spring-boot controller example):
 
 ```java
 @RestController
