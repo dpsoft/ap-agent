@@ -188,7 +188,7 @@ firefox | chrome https://pprof.me/a25a2a9
 
 ![image](https://user-images.githubusercontent.com/2567525/235777910-3f2c25e6-e66d-4d00-b3a7-eab950562368.png)
 
-### I can use the ap-agent as library?
+### Can I use the ap-agent as a library?
 
 Yes, you can use the ap-agent as library, just add the following dependency to your project:
 
@@ -230,7 +230,7 @@ public class PPROFController {
 - [ ] Add support for Context ID
 
 ## License
-This code base is available ander the Apache License, version 2.
+This code base is available under the Apache License, version 2.
 
 [AP-Loader]: https://github.com/jvm-profiling-tools/ap-loader
 [Async Profiler]: https://github.com/jvm-profiling-tools/async-profiler
