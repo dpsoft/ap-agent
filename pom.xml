@@ -12,7 +12,7 @@
         <me.bechberger.ap-loader.version>2.9-4</me.bechberger.ap-loader.version>
         <io.vavr.version>0.10.4</io.vavr.version>
         <com.typesafe.config.version>1.4.2</com.typesafe.config.version>
-        <org.tinylog.version>2.6.1</org.tinylog.version>
+        <org.tinylog.version>2.6.2</org.tinylog.version>
     </properties>
 
     <repositories>
