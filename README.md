@@ -7,7 +7,7 @@ Async Profiler Agent is a minimal Java agent that allows you to proxy to [Async 
 
 
 ## Usage
-Download the [latest version](https://s01.oss.sonatype.org/service/local/repositories/releases/content/io/github/dpsoft/ap-agent/0.1.3/ap-agent-0.1.3.jar).
+Download the [latest version](https://s01.oss.sonatype.org/service/local/repositories/releases/content/io/github/dpsoft/ap-agent/0.1.4/ap-agent-0.1.4.jar).
 
 To use the `AP-Agent`, simply add it to the JVM startup. The agent exposes a REST API for profiling with the following endpoint: `http://localhost:8080/profiler/profile`.
 
