@@ -71,7 +71,6 @@ public final class ProfilerExecutor {
 
     private Try<Void> toJFR(OutputStream out){
         return Try.run(() -> {
-            Logger.info("Writing JFR file to {}", file.getAbsolutePath());
             try (var fileReader = new FileInputStream(file.getAbsolutePath()); var outputStream = new BufferedOutputStream(out)) {
                 fileReader.transferTo(outputStream);
             }
