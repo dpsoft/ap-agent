@@ -87,6 +87,10 @@ public class Command {
         return durationSeconds;
     }
 
+    public boolean shouldCompress() {
+        return Output.JFR == output || Output.PPROF == output || Output.NFLX == output;
+    }
+
     public enum Output {
         PPROF("pprof"),
         JFR("jfr"),
