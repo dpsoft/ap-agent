@@ -15,10 +15,7 @@ import one.profiler.AsyncProfiler;
 import one.profiler.Events;
 import org.tinylog.Logger;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 
@@ -74,7 +71,8 @@ public final class ProfilerExecutor {
 
     private Try<Void> toJFR(OutputStream out){
         return Try.run(() -> {
-            try (var fileReader = new FileInputStream(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
+            Logger.info("Writing JFR file to {}", file.getAbsolutePath());
+            try (var fileReader = new FileInputStream(file.getAbsolutePath()); var outputStream = new BufferedOutputStream(out)) {
                 fileReader.transferTo(outputStream);
             }
         });

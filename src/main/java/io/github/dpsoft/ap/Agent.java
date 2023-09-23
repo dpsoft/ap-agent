@@ -8,7 +8,7 @@ import io.github.dpsoft.ap.util.Server;
 import java.lang.instrument.Instrumentation;
 
 public final class Agent {
-    public static void premain(String args, Instrumentation inst)  {
+    public static void premain(String args, Instrumentation ignored) {
         Runner.runWith((profiler, configuration) -> {
 
             Banner.show(configuration);

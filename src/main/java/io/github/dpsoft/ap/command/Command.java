@@ -48,7 +48,7 @@ public class Command {
     }
 
     private static Output getOutput(Map<String, String> params, AgentConfiguration.Handler configuration) {
-        if (configuration.isGoMode()) return Output.PPROF;
+        if (params.get("output") == null && configuration.isGoMode()) return Output.PPROF;
         return Option
                 .of(params.get("output"))
                 .flatMap(Output::get)
