@@ -15,10 +15,7 @@ import one.profiler.AsyncProfiler;
 import one.profiler.Events;
 import org.tinylog.Logger;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.OutputStream;
-import java.io.PrintStream;
+import java.io.*;
 import java.util.Set;
 import java.util.zip.GZIPOutputStream;
 

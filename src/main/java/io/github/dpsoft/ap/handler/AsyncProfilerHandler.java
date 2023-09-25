@@ -36,7 +36,7 @@ public class AsyncProfilerHandler implements HttpHandler {
             final var operation = Functions.lastSegment(path);
             final var command = Command.from(operation, queryParamsMap, configuration);
 
-            if(configuration.handler.isGoMode()) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
+            if(command.shouldCompress()) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
 
             ProfilerExecutor
                     .with(asyncProfiler, command)

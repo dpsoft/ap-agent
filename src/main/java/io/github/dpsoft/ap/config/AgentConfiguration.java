@@ -58,7 +58,10 @@ public final class AgentConfiguration {
             return goMode;
         }
 
-        public Set<String> context() { return isGoMode() ? goContext : context;}
+        public Set<String> context() {
+            if (isGoMode()) return new HashSet<>(goContext) {{ addAll(context); }};
+            return context;
+        }
     }
 
     public boolean showBanner() {
