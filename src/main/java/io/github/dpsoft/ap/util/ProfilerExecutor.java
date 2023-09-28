@@ -71,8 +71,11 @@ public final class ProfilerExecutor {
 
     private Try<Void> toJFR(OutputStream out){
         return Try.run(() -> {
-            try (var fileReader = new FileInputStream(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
-                fileReader.transferTo(outputStream);
+            try (var bufferedFileReader = new BufferedInputStream(new FileInputStream(file));
+                 var outputStream = new GZIPOutputStream(out);
+                 var bufferedOutputStream = new BufferedOutputStream(outputStream)) {
+
+                bufferedFileReader.transferTo(bufferedOutputStream);
             }
         });
     }
