@@ -51,7 +51,7 @@ public final class AgentConfiguration {
         public Handler(Config config) {
             this.goMode = config.getBoolean("handler.go-mode");
             this.goContext = new HashSet<>(config.getStringList("handler.go-context"));
-            this.context = new HashSet<>(config.getStringList("handler.context"));
+            this.context = new HashSet<>(){{ add(config.getString("handler.context")); }};
         }
 
         public boolean isGoMode() {
