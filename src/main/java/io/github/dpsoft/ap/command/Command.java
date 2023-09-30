@@ -24,7 +24,7 @@ public class Command {
 
     public static Command from(String operation, Map<String, String> params, AgentConfiguration configuration) {
         final var output = getOutput(params, configuration.handler);
-        final var eventType = getEventType(operation, params, output, configuration.handler);
+        final var eventType = getEventType(operation, params, output);
         final var duration = getDuration(params);
         final var eventParams = getEventParams(params);
         final var interval = getInterval(params, configuration.profiler);
@@ -55,8 +55,8 @@ public class Command {
                 .getOrElse(Output.JFR);
     }
 
-    private static String getEventType(String segment, Map<String, String> params, Output output, AgentConfiguration.Handler configuration) {
-        if (configuration.isGoMode()) return GOProfileTypes.get(segment).getOrElse(GOProfileTypes.PROFILE).event();
+    private static String getEventType(String segment, Map<String, String> params, Output output) {
+        if (Output.PPROF == output) return GOProfileTypes.get(segment).getOrElse(GOProfileTypes.PROFILE).event();
         if (Output.HOT_COLD == output) return Events.WALL;
         return params.getOrDefault("event", Events.ITIMER);
     }
