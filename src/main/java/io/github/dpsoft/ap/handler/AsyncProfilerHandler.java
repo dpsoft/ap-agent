@@ -26,8 +26,9 @@ public class AsyncProfilerHandler implements HttpHandler {
         final var path = exchange.getRequestURI().getPath();
 
         if(!configuration.handler.context().contains(path)) {
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0L);
-            exchange.close();
+            try (exchange) {
+                exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0L);
+            }
         } else {
             exchange.getRequestBody().close();
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
