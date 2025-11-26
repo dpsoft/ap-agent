@@ -1,6 +1,5 @@
 package io.github.dpsoft.ap.util;
 
-import java.io.InputStream;
 import java.util.Properties;
 
 public final class BuildInfo {
@@ -26,10 +25,11 @@ public final class BuildInfo {
     private static Properties loadProperties() {
         try {
             final var properties = new Properties();
-            final InputStream is = BuildInfo.class.getResourceAsStream("/build-info.properties");
-            if (is == null) throw new RuntimeException("build-info.properties not found");
-            properties.load(is);
-            return properties;
+            try (var is = BuildInfo.class.getResourceAsStream("/build-info.properties")) {
+                if (is == null) throw new RuntimeException("build-info.properties not found");
+                properties.load(is);
+                return properties;
+            }
         } catch (Exception e) {
             throw new RuntimeException("Error trying to read build-info.properties", e);
         }
