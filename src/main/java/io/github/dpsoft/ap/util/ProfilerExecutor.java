@@ -2,15 +2,11 @@ package io.github.dpsoft.ap.util;
 
 import io.github.dpsoft.ap.command.Command;
 import io.github.dpsoft.ap.command.Command.Output;
-import io.github.dpsoft.ap.converters.experimental.hotcold.HotColdFlameGraph;
-import io.github.dpsoft.ap.converters.experimental.hotcold.jfr2hotcoldflame;
-import io.github.dpsoft.ap.converters.experimental.pprof.jfr2pprof;
 import io.vavr.CheckedFunction0;
 import io.vavr.collection.List;
 import io.vavr.control.Try;
-import one.converter.*;
+import one.convert.*;
 import one.jfr.JfrReader;
-import one.jfr.event.ExecutionSample;
 import one.profiler.AsyncProfiler;
 import one.profiler.Events;
 import org.tinylog.Logger;
@@ -52,12 +48,14 @@ public final class ProfilerExecutor {
     }
 
     public void pipeTo(OutputStream out) {
+        final var arguments = getArguments(command);
+
         final var result = Match(command.output).of(
-            Case($(is(Output.PPROF)), () -> toPProf(command, out)),
-            Case($(is(Output.JFR)), () -> toJFR(out)),
-            Case($(is(Output.NFLX)), () -> toFlameScope(out)),
-            Case($(isIn(Output.FLAME_GRAPH, Output.FLAME, Output.COLLAPSED, Output.HOT_COLD)), () -> toFlame(command, out)),
-            Case($(isNull()), () -> toJFR(out)));
+            Case($(is(Output.PPROF)), () -> toPProf(arguments, out)),
+            Case($(isIn(Output.JFR, Output.COLLAPSED)), () -> toGZIP(out)),
+            Case($(is(Output.HEATMAP)), () -> toHeatmap(arguments, out)),
+            Case($(isIn(Output.FLAME_GRAPH, Output.FLAME)), () -> toFlame(arguments, out)),
+            Case($(isNull()), () -> toGZIP(out)));
 
         result.andFinally(file::delete);
         result.onFailure(cause -> Logger.error(cause, "It has not been possible to pipe the profiler result to the output stream."));
@@ -69,7 +67,7 @@ public final class ProfilerExecutor {
                 .onSuccess(this::pipeTo);
     }
 
-    private Try<Void> toJFR(OutputStream out){
+    private Try<Void> toGZIP(OutputStream out){
         return Try.run(() -> {
             try (var bufferedFileReader = new BufferedInputStream(new FileInputStream(file));
                  var outputStream = new GZIPOutputStream(out);
@@ -80,46 +78,39 @@ public final class ProfilerExecutor {
         });
     }
 
-    private Try<Void> toFlame(Command command, OutputStream out) {
-        if(Output.HOT_COLD == command.output) return toHotColdFlame(out);
+    private Try<Void> toFlame(Arguments arguments, OutputStream out) {
         return Try.run(() -> {
-            final var eventType = EventTypes.contains(command.eventType) ? command.eventType : Events.CPU;
-            final var params = command.eventParams.appendAll(List.of(eventType).map(event -> "--" + event));
-            final var arguments = new Arguments(params.toJavaArray(String[]::new));
-
-            final var flame = (Output.COLLAPSED == command.output || arguments.collapsed) ? new CollapsedStacks(arguments) : new FlameGraph(arguments);
-
-            try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new PrintStream(out)) {
-                new jfr2flame(reader, arguments).convert(flame);
-                flame.dump(outputStream);
+            try (var reader = new JfrReader(file.getAbsolutePath())) {
+                var converter = new JfrToFlame(reader, arguments);
+                converter.convert();
+                converter.dump(out);
             }
         });
     }
 
-    private Try<Void> toPProf(Command command, OutputStream out) {
+    private Try<Void> toPProf(Arguments arguments, OutputStream out) {
         return Try.run(() -> {
             try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
-                final var profileType = command.eventType.equals(Events.ITIMER) ? io.github.dpsoft.ap.converters.experimental.pprof.jfr2pprof.TYPE_CPU : command.eventType;
-                new jfr2pprof(reader).dump(outputStream, profileType);
+                var converter = new JfrToPprof(reader, arguments);
+                converter.convert();
+                converter.dump(outputStream);
             }
         });
     }
 
-    private Try<Void> toFlameScope(OutputStream out) {
+    private Try<Void> toHeatmap(Arguments arguments, OutputStream out) {
         return Try.run(() -> {
-            try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new GZIPOutputStream(out)) {
-                new jfr2nflx(reader).dump(outputStream);
+            try (var reader = new JfrReader(file.getAbsolutePath())) {
+                var converter = new JfrToHeatmap(reader, arguments);
+                converter.convert();
+                converter.dump(out);
             }
         });
     }
 
-    private Try<Void> toHotColdFlame(OutputStream out) {
-        return Try.run(() -> {
-            final var flame = new HotColdFlameGraph("--threads", "--lines", "--hotcold", "--title", "HotCold Flame Graph");
-            try (var reader = new JfrReader(file.getAbsolutePath()); var outputStream = new PrintStream(out)) {
-                new jfr2hotcoldflame(reader).convert(flame, true, false, true, false, ExecutionSample.class);
-                flame.dump(outputStream);
-            }
-        });
+    private Arguments getArguments(Command command) {
+        final var eventType = EventTypes.contains(command.eventType) ? command.eventType : Events.CPU;
+        final var params = command.eventParams.appendAll(List.of(eventType).map(event -> "--" + event));
+        return new Arguments(params.toJavaArray(String[]::new));
     }
 }
