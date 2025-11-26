@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 public class Command {
     public final String eventType;
@@ -59,7 +58,7 @@ public class Command {
 
     private static String getEventType(String segment, Map<String, String> params, Output output) {
         if (Output.PPROF == output) return GOProfileTypes.get(segment).orElse(GOProfileTypes.PROFILE).event();
-        return params.getOrDefault("event", Events.ITIMER);
+        return params.getOrDefault("event", Events.CTIMER);
     }
 
     private static Duration getDuration(Map<String, String> params) {
