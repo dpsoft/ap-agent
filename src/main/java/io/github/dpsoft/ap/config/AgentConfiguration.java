@@ -4,7 +4,6 @@ package io.github.dpsoft.ap.config;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigParseOptions;
-import io.vavr.control.Try;
 import org.tinylog.Logger;
 
 import java.util.HashSet;
@@ -41,6 +40,8 @@ public final class AgentConfiguration {
         public Profiler(Config config) {
             this.interval = config.getString("profiler.interval");
         }
+
+        public String interval() { return this.interval; }
     }
 
     public static class Handler {
@@ -68,11 +69,17 @@ public final class AgentConfiguration {
         return this.showBanner;
     }
 
+    // back-compat accessors to allow mocking/stubbing in tests
+    public Handler handler() { return this.handler; }
+    public Profiler profiler() { return this.profiler; }
 
     private static Config loadConfig() {
-        return Try.of(() -> loadDefaults().getConfig("ap-agent"))
-                .onFailure(missing -> Logger.error(missing, () -> "It has not been found any configuration for AP Agent."))
-                .get();
+        try {
+            return loadDefaults().getConfig("ap-agent");
+        } catch (Exception missing) {
+            Logger.error(missing, () -> "It has not been found any configuration for AP Agent.");
+            throw missing;
+        }
     }
 
     private static Config loadDefaults() {

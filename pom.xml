@@ -10,7 +10,6 @@
     <packaging>jar</packaging>
     <properties>
         <me.bechberger.ap-loader.version>4.2-10</me.bechberger.ap-loader.version>
-        <io.vavr.version>0.10.4</io.vavr.version>
         <com.typesafe.config.version>1.4.2</com.typesafe.config.version>
         <org.tinylog.version>2.6.2</org.tinylog.version>
     </properties>
@@ -33,11 +32,6 @@
             <groupId>me.bechberger</groupId>
             <artifactId>ap-loader-all</artifactId>
             <version>${me.bechberger.ap-loader.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vavr</groupId>
-            <artifactId>vavr</artifactId>
-            <version>${io.vavr.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>
@@ -119,10 +113,6 @@
                                 <relocation>
                                     <pattern>com.typesafe.config</pattern>
                                     <shadedPattern>io.github.dpsoft.ap.libs.com.typesafe.config</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>io.vavr</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.io.vavr</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.tinylog</pattern>

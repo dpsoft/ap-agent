@@ -1,14 +1,16 @@
 package io.github.dpsoft.ap.command;
 
 import io.github.dpsoft.ap.config.AgentConfiguration;
-import io.vavr.collection.Array;
-import io.vavr.collection.List;
-import io.vavr.control.Option;
 import one.profiler.Events;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Command {
     public final String eventType;
@@ -49,30 +51,31 @@ public class Command {
 
     private static Output getOutput(Map<String, String> params, AgentConfiguration.Handler configuration) {
         if (params.get("output") == null && configuration.isGoMode()) return Output.PPROF;
-        return Option
-                .of(params.get("output"))
+        return Optional
+                .ofNullable(params.get("output"))
                 .flatMap(Output::get)
-                .getOrElse(Output.JFR);
+                .orElse(Output.JFR);
     }
 
     private static String getEventType(String segment, Map<String, String> params, Output output) {
-        if (Output.PPROF == output) return GOProfileTypes.get(segment).getOrElse(GOProfileTypes.PROFILE).event();
+        if (Output.PPROF == output) return GOProfileTypes.get(segment).orElse(GOProfileTypes.PROFILE).event();
         return params.getOrDefault("event", Events.ITIMER);
     }
 
     private static Duration getDuration(Map<String, String> params) {
         if (params.get("duration") != null) return Duration.ofSeconds(Long.parseLong(params.get("duration")));
         if (params.get("seconds") != null) return Duration.ofSeconds(Long.parseLong(params.get("seconds")));
-        return Duration.ofSeconds(Long.parseLong("30")); // default value
+        return Duration.ofSeconds(30); // default value
     }
 
-    private static List<String> getEventParams(Map<String, String> parameters) {
-        if (parameters.get("params") == null) return List.empty();
-        return List.of(parameters.get("params").split(","))
-                .map(param -> "--" + param)
-                .map(param -> param.replace("=", ","))
-                .map(param -> param.split(","))
-                .flatMap(Array::of);
+    private static java.util.List<String> getEventParams(Map<String, String> parameters) {
+        if (parameters.get("params") == null) return new ArrayList<>();
+        String params = parameters.get("params");
+        return Arrays.stream(params.split(","))
+                .map(p -> "--" + p)
+                .map(p -> p.replace("=", ","))
+                .flatMap(p -> Arrays.stream(p.split(",")))
+                .collect(Collectors.toList());
     }
 
     public String asFormatString(String absolutePath) {
@@ -104,10 +107,10 @@ public class Command {
             this.value = value;
         }
 
-        public static Option<Output> get(String value) {
-            return Option.ofOptional(Arrays.stream(Output.values())
+        public static Optional<Output> get(String value) {
+            return Arrays.stream(Output.values())
                     .filter(output -> output.value.equals(value))
-                    .findFirst());
+                    .findFirst();
         }
     }
 
@@ -128,10 +131,10 @@ public class Command {
             return event;
         }
 
-        public static Option<GOProfileTypes> get(String value) {
-            return Option.ofOptional(Arrays.stream(GOProfileTypes.values())
+        public static Optional<GOProfileTypes> get(String value) {
+            return Arrays.stream(GOProfileTypes.values())
                     .filter(profile -> profile.profile.equals(value))
-                    .findFirst());
+                    .findFirst();
         }
     }
 }

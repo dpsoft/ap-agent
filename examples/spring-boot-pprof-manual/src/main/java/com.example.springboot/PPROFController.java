@@ -28,11 +28,19 @@ public class PPROFController {
         final var operation = Functions.lastSegment(request.getServletPath());
         final var command = Command.from(operation, queryParams);
 
-        ProfilerExecutor
-                .with(asyncProfiler, command)
-                .run()
-                .onSuccess(result -> result.pipeTo(response::getOutputStream))
-                .onFailure(cause -> log.error("It has not been possible to execute the profiler command.", cause))
-                .andFinallyTry(response::flushBuffer);
+        try {
+            ProfilerExecutor
+                    .with(asyncProfiler, command)
+                    .run()
+                    .pipeTo(response::getOutputStream);
+        } catch (Exception cause) {
+            log.error("It has not been possible to execute the profiler command.", cause);
+        } finally {
+            try {
+                response.flushBuffer();
+            } catch (Exception e) {
+                log.error("Error flushing response buffer", e);
+            }
+        }
     }
 }

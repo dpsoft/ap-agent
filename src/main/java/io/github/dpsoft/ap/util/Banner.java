@@ -2,9 +2,9 @@ package io.github.dpsoft.ap.util;
 
 import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.github.dpsoft.ap.functions.Functions;
-import io.vavr.control.Try;
 import org.tinylog.Logger;
 
+import java.io.InputStream;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -18,8 +18,8 @@ public final class Banner {
             final var poweredByMessage = Functions.padString(green(":-> Powered by AP-Loader ") + "(" + loaderVersion + ")", 71);
 
             final var substitutor = new StrSubstitutor(Map.of("welcome", welcomeMessage, "powered", poweredByMessage));
-
-            Try.withResources(() -> Banner.class.getResourceAsStream("/agent-banner.txt")).of((stream) -> {
+            try (InputStream stream = Banner.class.getResourceAsStream("/agent-banner.txt")) {
+                if (stream == null) throw new RuntimeException("banner resource not found");
                 final var banner = substitutor.replace(new String(stream.readAllBytes()));
                 final var scanner = new Scanner(banner);
 
@@ -34,13 +34,13 @@ public final class Banner {
                     System.out.println(line);
                 }
                 System.out.println();
-                return null; // void :(
-
-            }).onFailure((error) -> Logger.warn(error, () -> "It has not been possible to show the banner."));
+            } catch (Exception e) {
+                Logger.warn(e, () -> "It has not been possible to show the banner.");
+            }
         }
     }
 
     private static String red(String text) { return bold("\u001b[31m" + text + "\u001b[0m"); }
     private static String green(String text) { return bold("\u001b[32m" + text + "\u001b[0m"); }
-    private static String bold(String text) { return "\u001b[1m" + text + "\u001b[0m";}
+    private static String bold(String text) { return "\u001b[1m" + text + "\u001b[0m"; }
 }

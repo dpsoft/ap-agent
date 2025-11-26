@@ -38,12 +38,16 @@ public class AsyncProfilerHandler implements HttpHandler {
 
             if(command.shouldCompress()) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
 
-            ProfilerExecutor
-                    .with(asyncProfiler, command)
-                    .run()
-                    .onSuccess(result -> result.pipeTo(exchange.getResponseBody()))
-                    .onFailure(cause -> Logger.error(cause, "It has not been possible to execute the profiler command."))
-                    .andFinally(exchange::close);
+            try {
+                ProfilerExecutor
+                        .with(asyncProfiler, command)
+                        .run()
+                        .pipeTo(exchange.getResponseBody());
+            } catch (Exception cause) {
+                Logger.error(cause, "It has not been possible to execute the profiler command.");
+            } finally {
+                exchange.close();
+            }
         }
     }
 }
