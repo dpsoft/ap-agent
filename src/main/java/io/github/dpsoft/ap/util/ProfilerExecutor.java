@@ -33,7 +33,7 @@ public final class ProfilerExecutor {
             this.file = File.createTempFile("ap-agent", ".jfr");
             this.file.deleteOnExit();
         } catch (IOException e) {
-            throw new RuntimeException("It has not been possible to create a temporal file for JFR.", e);
+            throw new RuntimeException("It has not been possible to create a temporary file for JFR.", e);
         }
     }
 
