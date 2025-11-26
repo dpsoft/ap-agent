@@ -67,7 +67,7 @@ public class Command {
         return Duration.ofSeconds(30); // default value
     }
 
-    private static java.util.List<String> getEventParams(Map<String, String> parameters) {
+    private static List<String> getEventParams(Map<String, String> parameters) {
         if (parameters.get("params") == null) return new ArrayList<>();
         String params = parameters.get("params");
         return Arrays.stream(params.split(","))
