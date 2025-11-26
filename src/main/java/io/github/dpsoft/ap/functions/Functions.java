@@ -28,9 +28,9 @@ public final class Functions {
     }
 
     public static String padString(String str, int length) {
-        final var strBuilder = new StringBuilder(str);
-        for (var i = strBuilder.length(); i <= length; i++) { strBuilder.append(" "); }
-        return strBuilder.toString();
+        if (str.length() > length) { return str; }
+
+        return str + " ".repeat(length - str.length());
     }
 
     public static String lastSegment(String path) {

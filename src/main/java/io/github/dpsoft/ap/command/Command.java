@@ -57,7 +57,6 @@ public class Command {
 
     private static String getEventType(String segment, Map<String, String> params, Output output) {
         if (Output.PPROF == output) return GOProfileTypes.get(segment).getOrElse(GOProfileTypes.PROFILE).event();
-        if (Output.HOT_COLD == output) return Events.WALL;
         return params.getOrDefault("event", Events.ITIMER);
     }
 
@@ -88,17 +87,16 @@ public class Command {
     }
 
     public boolean shouldCompress() {
-        return Output.JFR == output || Output.PPROF == output || Output.NFLX == output;
+        return Output.JFR == output || Output.PPROF == output;
     }
 
     public enum Output {
         PPROF("pprof"),
         JFR("jfr"),
-        NFLX("nflx"),
         FLAME_GRAPH("flamegraph"),
         FLAME("flame"),
-        COLLAPSED("collapsed"),
-        HOT_COLD("hotcold");
+        HEATMAP("heatmap"),
+        COLLAPSED("collapsed");
 
         private final String value;
 
