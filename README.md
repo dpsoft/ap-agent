@@ -17,8 +17,8 @@ java -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
 
 The endpoint accepts the following parameters:
 
-* `event`: The type of event to profile (e.g. `cpu`, `itimer`, `wall`)
-* `output`: The desired output format (e.g. `flamegraph`, `hotcold`, `jfr`, `pprof`, `collapsed`, `fp`)
+* `event`: The type of event to profile (e.g. `cpu`, `itimer`, `ctimer`, `wall` `nativemem`)
+* `output`: The desired output format (e.g. `flamegraph`, `heatmap`, `jfr`, `pprof`, `collapsed`)
 * `params`: Additional parameters to pass to the flame graph (e.g. `simple`, `title=My Title`, `threads`, `reverse`)
 * `duration`: The length of time to profile for (in seconds)
 

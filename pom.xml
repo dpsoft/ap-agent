@@ -6,7 +6,7 @@
 
     <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent</artifactId>
-    <version>0.1.8</version>
+    <version>0.1.9</version>
     <packaging>jar</packaging>
     <properties>
         <me.bechberger.ap-loader.version>4.2-10</me.bechberger.ap-loader.version>
