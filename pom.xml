@@ -6,13 +6,13 @@
 
     <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent</artifactId>
-    <version>0.1.8</version>
+    <version>0.1.9</version>
     <packaging>jar</packaging>
     <properties>
         <me.bechberger.ap-loader.version>4.2-10</me.bechberger.ap-loader.version>
-        <io.vavr.version>0.10.4</io.vavr.version>
-        <com.typesafe.config.version>1.4.2</com.typesafe.config.version>
-        <org.tinylog.version>2.6.2</org.tinylog.version>
+        <io.vavr.version>0.10.6</io.vavr.version>
+        <com.typesafe.config.version>1.4.5</com.typesafe.config.version>
+        <org.tinylog.version>2.7.0</org.tinylog.version>
     </properties>
 
     <repositories>
@@ -76,7 +76,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.5.1</version>
+                <version>3.6.1</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -144,7 +144,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.0</version>
+                <version>3.3.1</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -165,7 +165,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.12.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -180,7 +180,7 @@
             </plugin>
             <plugin>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.1</version>
+                <version>3.1.4</version>
                 <executions>
                     <execution>
                         <id>default-deploy</id>
@@ -194,7 +194,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>3.1.0</version>
+                <version>3.2.8</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>

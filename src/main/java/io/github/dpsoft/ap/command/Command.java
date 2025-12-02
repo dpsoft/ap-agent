@@ -18,10 +18,6 @@ public class Command {
     public final String file;
     public final Output output;
 
-    public static Command from(String operation, Map<String, String> params){
-        return from(operation, params, AgentConfiguration.instance());
-    }
-
     public static Command from(String operation, Map<String, String> params, AgentConfiguration configuration) {
         final var output = getOutput(params, configuration.handler);
         final var eventType = getEventType(operation, params, output);
@@ -57,13 +53,13 @@ public class Command {
 
     private static String getEventType(String segment, Map<String, String> params, Output output) {
         if (Output.PPROF == output) return GOProfileTypes.get(segment).getOrElse(GOProfileTypes.PROFILE).event();
-        return params.getOrDefault("event", Events.ITIMER);
+        return params.getOrDefault("event", Events.CTIMER);
     }
 
     private static Duration getDuration(Map<String, String> params) {
         if (params.get("duration") != null) return Duration.ofSeconds(Long.parseLong(params.get("duration")));
         if (params.get("seconds") != null) return Duration.ofSeconds(Long.parseLong(params.get("seconds")));
-        return Duration.ofSeconds(Long.parseLong("30")); // default value
+        return Duration.ofSeconds(30); // default value
     }
 
     private static List<String> getEventParams(Map<String, String> parameters) {
@@ -112,7 +108,7 @@ public class Command {
     }
 
     public enum GOProfileTypes {
-        PROFILE("profile", Events.ITIMER),
+        PROFILE("profile", Events.CTIMER),
         ALLOC("allocs", Events.ALLOC),
         BLOCK("block", Events.LOCK);
 

@@ -20,7 +20,8 @@ import static io.vavr.Predicates.*;
 
 public final class ProfilerExecutor {
 
-    private static final Set<String> EventTypes = Set.of(Events.ALLOC, Events.CPU, Events.LOCK);
+    private static final String NATIVE_MEM = "nativemem";
+    private static final Set<String> EventTypes = Set.of(Events.ALLOC, Events.CPU, Events.LOCK , NATIVE_MEM);
 
     private final AsyncProfiler profiler;
     private final File file;
