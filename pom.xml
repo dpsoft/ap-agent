@@ -7,6 +7,9 @@
     <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent</artifactId>
     <version>0.1.9</version>
+    <name>ap-agent</name>
+    <description>Java agent that acts as a proxy to the almighty Async Profiler</description>
+    <url>https://github.com/dpsoft/ap-agent</url>
     <packaging>jar</packaging>
     <properties>
         <me.bechberger.ap-loader.version>4.2-10</me.bechberger.ap-loader.version>
@@ -179,17 +182,14 @@
                 </configuration>
             </plugin>
             <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.4</version>
-                <executions>
-                    <execution>
-                        <id>default-deploy</id>
-                        <phase>deploy</phase>
-                        <goals>
-                            <goal>deploy</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.9.0</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <autoPublish>true</autoPublish>
+                    <publishingServerId>ossrh</publishingServerId>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
