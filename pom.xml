@@ -6,7 +6,7 @@
 
     <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent</artifactId>
-    <version>0.1.9</version>
+    <version>0.1.10</version>
     <name>ap-agent</name>
     <description>Java agent that acts as a proxy to the almighty Async Profiler</description>
     <url>https://github.com/dpsoft/ap-agent</url>

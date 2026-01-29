@@ -123,7 +123,7 @@ Yes, you can use the ap-agent as library, just add the following dependency to y
 <dependency>
     <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent</artifactId>
-    <version>0.1.9</version>
+    <version>0.1.10</version>
 </dependency>
 ```
 
