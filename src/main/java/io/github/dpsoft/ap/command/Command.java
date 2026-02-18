@@ -57,8 +57,16 @@ public class Command {
     }
 
     private static Duration getDuration(Map<String, String> params) {
-        if (params.get("duration") != null) return Duration.ofSeconds(Long.parseLong(params.get("duration")));
-        if (params.get("seconds") != null) return Duration.ofSeconds(Long.parseLong(params.get("seconds")));
+        String raw = params.get("duration");
+        if (raw == null) raw = params.get("seconds");
+        if (raw != null) {
+            try {
+                long secs = Long.parseLong(raw);
+                if (secs > 0) return Duration.ofSeconds(secs);
+            } catch (NumberFormatException ignored) {
+                // fall through to default
+            }
+        }
         return Duration.ofSeconds(30); // default value
     }
 

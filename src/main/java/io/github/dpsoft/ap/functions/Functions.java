@@ -20,9 +20,10 @@ public final class Functions {
 
         for (String pair : pairs) {
             final int idx = pair.indexOf("=");
-            final var key = pair.substring(0, idx);
-            final var value = pair.substring(idx + 1);
-            queryPairs.put(URLDecoder.decode(key, StandardCharsets.UTF_8), URLDecoder.decode(value, StandardCharsets.UTF_8));
+            if (idx < 0) continue;          // skip valueless params
+            final var key   = URLDecoder.decode(pair.substring(0, idx), StandardCharsets.UTF_8);
+            final var value = URLDecoder.decode(pair.substring(idx + 1), StandardCharsets.UTF_8);
+            queryPairs.put(key, value);
         }
         return queryPairs;
     }

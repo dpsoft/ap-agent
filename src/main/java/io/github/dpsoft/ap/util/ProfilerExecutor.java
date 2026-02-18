@@ -42,8 +42,11 @@ public final class ProfilerExecutor {
     public Try<ProfilerExecutor> run() {
         return Try.of(() -> {
             profiler.execute(command.asFormatString(file.getAbsolutePath()));
-            Thread.sleep(command.getDuration().toMillis());
-            profiler.stop();
+            try {
+                Thread.sleep(command.getDuration().toMillis());
+            } finally {
+                profiler.stop();   // always stop, even on interrupt
+            }
             return this;
         });
     }
