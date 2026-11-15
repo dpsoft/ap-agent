@@ -67,6 +67,7 @@ final class AgentProcess implements AutoCloseable {
         command.add(java);
         command.add("-XX:+IgnoreUnrecognizedVMOptions");
         command.add("--enable-native-access=ALL-UNNAMED");
+        coverageAgent(agentJar).ifPresent(command::add);
         command.add("-javaagent:" + agentJar);
         command.add("-Dap-agent.server.host=127.0.0.1");
         command.add("-Dap-agent.server.port=" + port);
@@ -105,6 +106,22 @@ final class AgentProcess implements AutoCloseable {
 
     static final String STARTED = "AP Agent started";
     static final String STARTUP_COMPLETED = "Startup completed in";
+
+    /**
+     * The JaCoCo agent for the JVM running the current agent jar, so premain, Runner and Server are covered too.
+     * The baseline release is never instrumented: its classes would not match the current ones. Only the agent's
+     * own classes are recorded, not its relocated dependencies. The data is written when the JVM exits normally
+     * ({@link #close} uses destroy(), i.e. SIGTERM, which runs the shutdown hooks).
+     */
+    private static java.util.Optional<String> coverageAgent(Path agentJar) {
+        final var jacoco = System.getProperty("ap-agent.it.jacoco-agent");
+        final var destfile = System.getProperty("ap-agent.it.jacoco-destfile");
+        final var current = System.getProperty("ap-agent.it.jar");
+        if (jacoco == null || destfile == null || current == null || !agentJar.equals(Paths.get(current))) return java.util.Optional.empty();
+        if (!Files.exists(Paths.get(jacoco))) return java.util.Optional.empty();
+        return java.util.Optional.of("-javaagent:" + jacoco + "=destfile=" + destfile
+                + ",append=true,includes=io.github.dpsoft.ap.*,excludes=io.github.dpsoft.ap.libs.*");
+    }
 
     private static Path requiredPath(String property) {
         final var value = System.getProperty(property);

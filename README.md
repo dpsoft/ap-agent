@@ -5,6 +5,7 @@ memory as interactive flame graphs, heatmaps, JFR or Go-compatible pprof.*
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.dpsoft/ap-agent)](https://central.sonatype.com/artifact/io.github.dpsoft/ap-agent)
 [![CI](https://github.com/dpsoft/ap-agent/actions/workflows/build.yml/badge.svg)](https://github.com/dpsoft/ap-agent/actions/workflows/build.yml)
+[![Coverage](https://codecov.io/gh/dpsoft/ap-agent/branch/main/graph/badge.svg)](https://codecov.io/gh/dpsoft/ap-agent)
 [![Java 11+](https://img.shields.io/badge/Java-11%2B-blue)](docs/configuration.md#requirements)
 [![async-profiler 4.6](https://img.shields.io/badge/async--profiler-4.6-orange)](https://github.com/async-profiler/async-profiler)
 [![License](https://img.shields.io/github/license/dpsoft/ap-agent)](LICENSE)

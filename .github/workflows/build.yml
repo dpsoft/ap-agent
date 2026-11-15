@@ -9,6 +9,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write # Codecov upload through OIDC (no token)
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -52,12 +53,27 @@ jobs:
             target/failsafe-reports/
           retention-days: 7
 
+      - name: Coverage of the smoke tests (shaded agent with -javaagent)
+        if: matrix.java == '21' && matrix.os == 'ubuntu-latest'
+        run: scripts/coverage-it.sh
+
+      - name: Upload coverage to Codecov
+        if: matrix.java == '21' && matrix.os == 'ubuntu-latest'
+        uses: codecov/codecov-action@v7
+        with:
+          use_oidc: true
+          files: target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
+          disable_search: true
+          fail_ci_if_error: false # a Codecov outage must not fail the build
+
       - name: Upload coverage report
         if: matrix.java == '21' && matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v7
         with:
           name: jacoco-report
-          path: target/site/jacoco/
+          path: |
+            target/site/jacoco/
+            target/site/jacoco-it/
           retention-days: 14
 
       - name: Upload compatibility report
