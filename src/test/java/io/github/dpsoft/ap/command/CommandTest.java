@@ -86,6 +86,22 @@ class CommandTest {
                 command(Map.of("event", event, "interval", "1m")).asFormatString("/tmp/x.jfr"));
     }
 
+    @ParameterizedTest
+    @CsvSource({"alloc,abc", "alloc,-1", "alloc,10ms", "alloc,10s", "nativemem,1.5m", "lock,-1", "lock,10k", "lock,1g",
+            "cpu,abc", "cpu,-5", "cpu,0x10", "wall,99999999999999999999"})
+    void invalidIntervalsAreRejected(String event, String interval) {
+        // never let async-profiler silently fall back to CPU profiling
+        final var error = assertThrows(IllegalArgumentException.class, () -> command(Map.of("event", event, "interval", interval)));
+        assertTrue(error.getMessage().contains("interval"), error.getMessage());
+    }
+
+    @ParameterizedTest
+    @CsvSource({"alloc,0", "alloc,512k", "alloc,2M", "alloc,64kb", "nativemem,1g", "lock,0", "lock,1ms", "lock,1m", "lock,10US",
+            "lock,500ns", "cpu,1000000", "wall,5ms", "itimer,1s"})
+    void validIntervalsAreAccepted(String event, String interval) {
+        assertEquals(interval, command(Map.of("event", event, "interval", interval)).interval);
+    }
+
     @Test
     void intervalFromParamsOverridesConfiguration() {
         assertEquals("1000", command(Map.of("interval", "1000")).interval);

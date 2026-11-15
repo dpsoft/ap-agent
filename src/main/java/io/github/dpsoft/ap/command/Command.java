@@ -38,7 +38,7 @@ public class Command {
      * wall-clock events; alloc, lock and nativemem keep async-profiler's own defaults.
      */
     private static String getInterval(Map<String, String> params, String eventType, AgentConfiguration.Profiler configuration) {
-        if (params.get("interval") != null) return params.get("interval");
+        if (params.get("interval") != null) return validInterval(params.get("interval").trim(), eventType);
         return TIME_SAMPLED_EVENTS.contains(eventType) ? configuration.interval : null;
     }
 
@@ -135,10 +135,26 @@ public class Command {
         return sb.toString();
     }
 
+    // async-profiler reads the first letter after the number: n, u, m (milli), s for times; b, k, m, g for sizes
+    private static final java.util.regex.Pattern TIME = java.util.regex.Pattern.compile("\\d{1,18}([num]s?|s)?", java.util.regex.Pattern.CASE_INSENSITIVE);
+    private static final java.util.regex.Pattern BYTES = java.util.regex.Pattern.compile("\\d{1,18}([kmg]b?|b)?", java.util.regex.Pattern.CASE_INSENSITIVE);
+
+    /**
+     * async-profiler validates {@code interval}, but the alloc, lock and nativemem options silently disable the event
+     * for an unparsable or negative value and fall back to CPU profiling: reject those here (a 400).
+     */
+    private static String validInterval(String value, String eventType) {
+        final boolean bytes = Events.ALLOC.equals(eventType) || "nativemem".equals(eventType);
+        if (!(bytes ? BYTES : TIME).matcher(value).matches()) {
+            throw new IllegalArgumentException("interval must be a non-negative " + (bytes ? "size such as 524288, 512k or 2m" : "time such as 10000000, 10ms or 1s") + " for event " + eventType + ": " + value);
+        }
+        return value;
+    }
+
     private static String intervalOption(String eventType) {
         switch (eventType) {
             case Events.ALLOC: return "alloc";        // bytes
-            case Events.LOCK: return "lock";          // total wait time threshold
+            case Events.LOCK: return "lock";          // accumulated wait time between two samples
             case "nativemem": return "nativemem";     // bytes
             default: return "interval";
         }
