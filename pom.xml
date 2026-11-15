@@ -65,6 +65,14 @@
             <scope>test</scope>
         </dependency>
         <dependency>
+            <!-- JaCoCo agent attached to the JVMs of the smoke tests (coverage of premain, Runner, Server) -->
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <version>${jacoco.version}</version>
+            <classifier>runtime</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
             <!-- only to compile the servlet example of the README (Jakarta Servlet 6.0 supports Java 11) -->
             <groupId>jakarta.servlet</groupId>
             <artifactId>jakarta.servlet-api</artifactId>
@@ -150,6 +158,8 @@
                 <configuration>
                     <argLine>@{argLine} -XX:+IgnoreUnrecognizedVMOptions --enable-native-access=ALL-UNNAMED</argLine>
                     <systemPropertyVariables>
+                        <ap-agent.it.jacoco-agent>${org.jacoco:org.jacoco.agent:jar:runtime}</ap-agent.it.jacoco-agent>
+                        <ap-agent.it.jacoco-destfile>${project.build.directory}/jacoco-it.exec</ap-agent.it.jacoco-destfile>
                         <ap-agent.it.async-profiler-api>${project.build.directory}/it-app-libs/async-profiler-api.jar</ap-agent.it.async-profiler-api>
                         <ap-agent.it.conflicting-ap-loader>${project.build.directory}/it-app-libs/conflicting-ap-loader.jar</ap-agent.it.conflicting-ap-loader>
                         <ap-agent.it.baseline-dir>${project.build.directory}/baseline</ap-agent.it.baseline-dir>
