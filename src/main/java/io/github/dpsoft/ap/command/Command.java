@@ -87,7 +87,10 @@ public class Command {
         final var latency = parameters.get("latency");
         if (latency != null && !latency.isEmpty()) {
             final long millis = Long.parseLong(latency);
-            if (millis < 0) throw new IllegalArgumentException("latency must be >= 0 ms: " + latency);
+            // the converter works in nanoseconds: reject values that would overflow and silently disable the filter
+            if (millis < 0 || millis > Long.MAX_VALUE / 1_000_000) {
+                throw new IllegalArgumentException("latency must be between 0 and " + Long.MAX_VALUE / 1_000_000 + " ms: " + latency);
+            }
             filters = filters.appendAll(List.of("--latency", Long.toString(millis)));
         }
         return filters;

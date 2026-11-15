@@ -64,8 +64,8 @@ public final class FixtureApp {
     public static final String USERS_TAG = "fixture:kind=users,id=2";
 
     /**
-     * Burns CPU inside alternating spans (async-profiler Span API). Requires the profiler library to be loaded
-     * before the first call, otherwise the Span API stays unavailable for the lifetime of the JVM.
+     * Burns CPU inside alternating spans (async-profiler Span API). Spans are only recorded while the profiler
+     * library is loaded and a JFR recording is running; otherwise the calls are cheap no-ops.
      */
     private static void spans() {
         long n = 0;

@@ -23,9 +23,24 @@ class FunctionsTest {
 
     @Test
     void splitQueryParamsDecodesKeysAndValues() {
-        final var params = Functions.splitQueryParams(URI.create("http://h/p?params=include%3Dcom.foo.*%2Creverse&a%20b=c+d"));
+        final var params = Functions.splitQueryParams(URI.create("http://h/p?params=include%3Dcom.foo.*%2Creverse&a%20b=c%20d"));
         assertEquals("include=com.foo.*,reverse", params.get("params"));
         assertEquals("c d", params.get("a b"));
+    }
+
+    @Test
+    void splitQueryParamsDecodesExactlyOnce() {
+        final var params = Functions.splitQueryParams(URI.create("http://h/p?tag=fixture%3A.%2B&t2=orders%26users&t3=100%25done&t4=a%3Db"));
+        assertEquals("fixture:.+", params.get("tag"));
+        assertEquals("orders&users", params.get("t2"));
+        assertEquals("100%done", params.get("t3"));
+        assertEquals("a=b", params.get("t4"));
+        assertEquals(4, params.size());
+    }
+
+    @Test
+    void splitQueryParamsKeepsLiteralPlus() {
+        assertEquals("GET .+", Functions.splitQueryParams(URI.create("http://h/p?tag=GET%20.+")).get("tag"));
     }
 
     @Test

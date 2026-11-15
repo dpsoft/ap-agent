@@ -100,6 +100,8 @@ class CommandTest {
     void invalidLatencyIsRejected() {
         assertThrows(NumberFormatException.class, () -> command(Map.of("latency", "slow")));
         assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "-1")));
+        assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "9223372036855")));
+        assertEquals(List.of("--latency", "9223372036854"), command(Map.of("latency", "9223372036854")).eventParams.toJavaList());
     }
 
     @Test
