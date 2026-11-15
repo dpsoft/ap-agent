@@ -122,6 +122,8 @@ class ProfilerServiceTest {
             assertEquals(files, recordingFiles(), "a busy request must not allocate a recording file");
             // invalid parameters are still reported as such while busy
             assertThrows(IllegalArgumentException.class, () -> profiler.profile("/profiler/profile", Map.of("duration", "abc")));
+            assertThrows(IllegalArgumentException.class, () -> profiler.profile("/profiler/profile", Map.of("tag", "(")));
+            assertEquals(files, recordingFiles());
             assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) < 1_000, "must not wait for the running session");
             assertTrue(first.get(30, TimeUnit.SECONDS) > 0, "the running session is not affected");
         } finally {

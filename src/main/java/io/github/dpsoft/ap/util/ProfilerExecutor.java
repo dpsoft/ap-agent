@@ -23,11 +23,11 @@ public final class ProfilerExecutor {
     private final AsyncProfiler profiler;
     private final Command command;
     private final Arguments arguments;
-    private final File file;
+    private File file; // created by run(): validating a request must not allocate anything
 
     /**
      * @throws IllegalArgumentException when the converter rejects the request parameters (e.g. an invalid tag
-     *                                  regex), before anything is recorded
+     *                                  regex); nothing is allocated until {@link #run}
      */
     public static ProfilerExecutor with(AsyncProfiler profiler, Command command) {
         return new ProfilerExecutor(profiler, command);
@@ -37,12 +37,6 @@ public final class ProfilerExecutor {
         this.profiler = profiler;
         this.command = command;
         this.arguments = getArguments(command);
-        try {
-            // no deleteOnExit(): every path deletes the file, and the JVM would keep each registered path forever
-            this.file = File.createTempFile("ap-agent", ".jfr");
-        } catch (IOException e) {
-            throw new UncheckedIOException("It has not been possible to create a temporal file for JFR.", e);
-        }
     }
 
     /**
@@ -53,6 +47,9 @@ public final class ProfilerExecutor {
      * @throws IOException            or a runtime exception when the profiler cannot record (e.g. invalid options)
      */
     public ProfilerExecutor run() throws IOException {
+        // no deleteOnExit(): the file is deleted on every path, and the JVM would keep each registered path forever
+        file = File.createTempFile("ap-agent", ".jfr");
+        boolean recorded = false;
         try {
             profiler.execute(command.asFormatString(file.getAbsolutePath()));
             try {
@@ -60,16 +57,15 @@ public final class ProfilerExecutor {
             } finally {
                 profiler.stop();
             }
+            recorded = true;
             return this;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
-            file.delete();
             final var interrupted = new InterruptedIOException("Profiling was interrupted");
             interrupted.initCause(e);
             throw interrupted;
-        } catch (IOException | RuntimeException e) {
-            file.delete();
-            throw e;
+        } finally {
+            if (!recorded) file.delete(); // any failure, Errors included
         }
     }
 
@@ -78,6 +74,7 @@ public final class ProfilerExecutor {
      * it. The recording itself is always deleted.
      */
     public Path convert() throws IOException {
+        if (file == null) throw new IllegalStateException("run() must record before converting");
         try {
             final var output = Files.createTempFile("ap-agent", ".out");
             try (var out = new BufferedOutputStream(Files.newOutputStream(output))) {
@@ -94,6 +91,7 @@ public final class ProfilerExecutor {
 
     /** Converts the recording straight into {@code out} (library use); failures are logged. */
     public void pipeTo(OutputStream out) {
+        if (file == null) throw new IllegalStateException("run() must record before converting");
         try {
             convert(arguments, out);
         } catch (Exception e) {
