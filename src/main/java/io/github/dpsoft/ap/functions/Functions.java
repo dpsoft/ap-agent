@@ -11,8 +11,9 @@ public final class Functions {
      * Splits a query string apart into its component name/value pairs.
      * <p>
      * Pairs are split on the raw (still encoded) query and each part is percent-decoded exactly once, so encoded
-     * {@code &}, {@code =} or {@code %} inside a value survive. A literal {@code +} is kept as {@code +} (not a space):
-     * values such as span tag regexes use it, and this endpoint does not receive HTML forms. Use {@code %20} for spaces.
+     * {@code &}, {@code =} or {@code %} inside a value survive. Standard form decoding applies: {@code +} is a space,
+     * so a literal {@code +} (e.g. in a span tag regex) must be sent as {@code %2B}, as {@code URLEncoder} and
+     * {@code curl --data-urlencode} do.
      *
      * @return a map of query parameters
      */
@@ -32,7 +33,7 @@ public final class Functions {
     }
 
     private static String decode(String component) {
-        return URLDecoder.decode(component.replace("+", "%2B"), StandardCharsets.UTF_8);
+        return URLDecoder.decode(component, StandardCharsets.UTF_8);
     }
 
     public static String padString(String str, int length) {

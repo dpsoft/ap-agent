@@ -39,8 +39,17 @@ class FunctionsTest {
     }
 
     @Test
-    void splitQueryParamsKeepsLiteralPlus() {
-        assertEquals("GET .+", Functions.splitQueryParams(URI.create("http://h/p?tag=GET%20.+")).get("tag"));
+    void splitQueryParamsDecodesPlusAsSpace() {
+        assertEquals("c d", Functions.splitQueryParams(URI.create("http://h/p?a=c+d")).get("a"));
+        assertEquals("My Title", Functions.splitQueryParams(URI.create("http://h/p?params=title%3DMy+Title")).get("params").substring(6));
+    }
+
+    @Test
+    void splitQueryParamsRoundTripsUrlEncoder() {
+        for (var value : new String[]{"GET .+", "fixture:kind=orders,.*", "a&b=c%d", "My Title"}) {
+            final var encoded = java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+            assertEquals(value, Functions.splitQueryParams(URI.create("http://h/p?tag=" + encoded)).get("tag"), encoded);
+        }
     }
 
     @Test
