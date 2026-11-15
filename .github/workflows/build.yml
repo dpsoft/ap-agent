@@ -9,7 +9,6 @@ on:
 
 permissions:
   contents: read
-  id-token: write # Codecov upload through OIDC (no token)
 
 concurrency:
   group: ci-${{ github.ref }}
@@ -61,7 +60,7 @@ jobs:
         if: matrix.java == '21' && matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v7
         with:
-          use_oidc: true
+          token: ${{ secrets.CODECOV_TOKEN }} # repository secret; pull requests from forks upload without it
           files: target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml
           disable_search: true
           fail_ci_if_error: false # a Codecov outage must not fail the build

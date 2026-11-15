@@ -16,8 +16,8 @@ mvn -Passets verify -Dgpg.skip=true # regenerate the images in docs/assets
   with the current build; intended differences are declared in the test, and `target/compatibility-report.md` lists
   them all.
 * **Coverage**: JaCoCo measures the unit tests (`target/site/jacoco`) and, through an agent attached to the smoke
-  test JVMs, the shaded jar (`scripts/coverage-it.sh` → `target/site/jacoco-it`). CI uploads both to Codecov,
-  which merges them.
+  test JVMs, the shaded jar (`scripts/coverage-it.sh` → `target/site/jacoco-it`). CI uploads both to Codecov
+  (repository secret `CODECOV_TOKEN`), which merges them.
 * **Documentation examples** (`src/test/java/io/github/dpsoft/ap/examples`) are compiled and run, and
   `ReadmeExamplesTest` checks that the docs show exactly that code: change both together.
 
