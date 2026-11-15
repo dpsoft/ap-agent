@@ -53,20 +53,11 @@ class CompatibilityIT {
             "/debug/pprof/block?seconds=1",
             "/profiler/profile?duration=1");
 
-    /** request -> {shape in the baseline, shape now, why}. */
-    private static final Map<String, String[]> EXPECTED_CHANGES = Map.of(
-            "/profiler/profile?duration=1&output=collapsed",
-            new String[]{"200 jfr.gz samples", "200 collapsed samples", "collapsed returned the JFR recording"},
-            "/profiler/profile?duration=1&event=wall&output=flame",
-            new String[]{"200 html-flame empty", "200 html-flame samples", "wall samples were read as CPU samples"},
-            "/profiler/profile?duration=1&event=nativemem&output=pprof",
-            new String[]{"200 pprof[cpu] samples", "200 pprof[malloc] samples", "pprof ignored the event parameter"},
-            "/profiler/profile?duration=abc",
-            new String[]{"connection-dropped", "400 text", "invalid parameters dropped the connection, now 400 with a message"},
-            "/profiler/profile?debug&duration=1&output=flame",
-            new String[]{"connection-dropped", "200 html-flame samples", "parameters without '=' dropped the connection"},
-            "/nope",
-            new String[]{"404 empty", "404 text", "404 responses carry a message"});
+    /**
+     * request -> {shape in the baseline, shape now, why}. Empty right after a release: declare here every intended
+     * difference introduced since the baseline (0.2.0 vs 0.1.10 had six, listed in docs/upgrading.md).
+     */
+    private static final Map<String, String[]> EXPECTED_CHANGES = Map.of();
 
     private static final List<String[]> REPORT = new ArrayList<>();
 
