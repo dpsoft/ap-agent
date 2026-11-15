@@ -16,10 +16,10 @@ public final class Runner {
      * must not prevent the application from starting (e.g. an unsupported platform or a missing native library).
      */
     public static void runWith(BiConsumer<AsyncProfiler, AgentConfiguration> consumer) {
-        if (!AsyncProfilerLoader.isSupported()) Logger.error("Async Profiler is not supported on this platform.");
-
         final var start = System.nanoTime();
         try {
+            // isSupported() can throw too, e.g. when the application ships another ap-loader version
+            if (!AsyncProfilerLoader.isSupported()) Logger.error("Async Profiler is not supported on this platform.");
             consumer.accept(AsyncProfilerLoader.load(), AgentConfiguration.instance());
         } catch (Exception | LinkageError cause) {
             Logger.error(cause, () -> "Error trying to load Async Profiler.");
