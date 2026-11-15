@@ -10,10 +10,12 @@ import java.nio.file.Files;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.regex.Pattern;
+
 import java.util.zip.GZIPInputStream;
 
 /** Helpers to inspect the payloads returned by the agent. */
 public final class Profiles {
+    // Root frame of the HTML produced by the async-profiler converter: n(3,<total>). Format-dependent: re-check on upgrades.
     private static final Pattern FLAME_ROOT = Pattern.compile("(?m)^n\\(3,(\\d+)\\)");
 
     public static boolean isGzip(byte[] body) {
@@ -55,9 +57,25 @@ public final class Profiles {
         return m.find() ? Long.parseLong(m.group(1)) : -1;
     }
 
-    /** True when the (decompressed) pprof protobuf string table contains the given string. */
-    public static boolean pprofHasString(byte[] rawPprof, String value) {
-        return text(rawPprof).contains(value);
+    /** Recording settings that async-profiler writes as jdk.ActiveSetting events (interval, event, engine...). */
+    public static Map<String, String> jfrSettings(byte[] raw) throws IOException {
+        final var file = Files.createTempFile("ap-agent-test", ".jfr");
+        try {
+            Files.write(file, raw);
+            final var settings = new TreeMap<String, String>();
+            for (RecordedEvent event : RecordingFile.readAllEvents(file)) {
+                if (event.getEventType().getName().equals("jdk.ActiveSetting")) {
+                    settings.put(event.getString("name"), event.getString("value"));
+                }
+            }
+            return settings;
+        } finally {
+            Files.deleteIfExists(file);
+        }
+    }
+
+    public static Pprof pprof(byte[] gzippedBody) throws IOException {
+        return Pprof.parse(gunzip(gzippedBody));
     }
 
     private Profiles() {}

@@ -17,11 +17,36 @@ public final class FixtureApp {
         worker.join();
     }
 
+    private static final Object LOCK = new Object();
+
+    /** Starts the workload: one CPU/heap/native thread plus two threads contending on a monitor. */
     public static Thread start() {
-        final var thread = new Thread(FixtureApp::loop, "fixture-workload");
+        for (int i = 0; i < 2; i++) daemon(FixtureApp::contend, "fixture-contention-" + i);
+        return daemon(FixtureApp::loop, "fixture-workload");
+    }
+
+    private static Thread daemon(Runnable task, String name) {
+        final var thread = new Thread(task, name);
         thread.setDaemon(true);
         thread.start();
         return thread;
+    }
+
+    private static void contend() {
+        while (!Thread.currentThread().isInterrupted()) {
+            try {
+                synchronized (LOCK) {
+                    // hold the monitor long enough for the other thread to block (spinning is not contention)
+                    Thread.sleep(2);
+                    sink++;
+                }
+                // release outside the monitor so the threads alternate: monitors are unfair and an
+                // immediate re-acquire would starve the other thread into a few very long waits
+                Thread.sleep(1);
+            } catch (InterruptedException e) {
+                return;
+            }
+        }
     }
 
     private static void loop() {

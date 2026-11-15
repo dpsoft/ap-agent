@@ -52,11 +52,30 @@ final class AgentProcess implements AutoCloseable {
         command.add(FixtureApp.class.getName());
 
         final var log = Files.createTempFile("ap-agent-it", ".log");
-        final var process = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(log.toFile()).start();
+        final Process process;
+        try {
+            process = new ProcessBuilder(command).redirectErrorStream(true).redirectOutput(log.toFile()).start();
+        } catch (IOException | RuntimeException e) {
+            Files.deleteIfExists(log);
+            throw e;
+        }
         final var agent = new AgentProcess(process, log, port);
-        agent.awaitStarted(Duration.ofSeconds(60));
-        return agent;
+        try {
+            agent.awaitOutput(Duration.ofSeconds(60), STARTED, STARTUP_COMPLETED);
+            return agent;
+        } catch (Exception | Error failure) {
+            // start() never returns the AutoCloseable on failure, so the caller cannot clean up: do it here
+            try {
+                agent.close();
+            } catch (Exception cleanup) {
+                failure.addSuppressed(cleanup);
+            }
+            throw failure;
+        }
     }
+
+    static final String STARTED = "AP Agent started";
+    static final String STARTUP_COMPLETED = "Startup completed in";
 
     private static Path requiredPath(String property) {
         final var value = System.getProperty(property);
@@ -72,14 +91,17 @@ final class AgentProcess implements AutoCloseable {
         }
     }
 
-    private void awaitStarted(Duration timeout) throws Exception {
+    /** Waits until every marker is present in the child output (they are logged at different moments). */
+    private void awaitOutput(Duration timeout, String... markers) throws Exception {
         final long deadline = System.nanoTime() + timeout.toNanos();
         while (System.nanoTime() < deadline) {
-            if (!process.isAlive()) throw new IllegalStateException("Agent process exited early:\n" + output());
-            if (output().contains("AP Agent started")) return;
+            final var output = output();
+            if (java.util.Arrays.stream(markers).allMatch(output::contains)) return;
+            if (!process.isAlive()) throw new IllegalStateException("Agent process exited early:\n" + output);
             Thread.sleep(100);
         }
-        throw new IllegalStateException("Agent did not start within " + timeout + ":\n" + output());
+        throw new IllegalStateException("Agent output did not contain " + java.util.Arrays.toString(markers)
+                + " within " + timeout + ":\n" + output());
     }
 
     String output() throws IOException {
@@ -94,8 +116,11 @@ final class AgentProcess implements AutoCloseable {
 
     @Override
     public void close() throws Exception {
-        process.destroy();
-        if (!process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS)) process.destroyForcibly().waitFor();
-        Files.deleteIfExists(log);
+        try {
+            process.destroy();
+            if (!process.waitFor(10, java.util.concurrent.TimeUnit.SECONDS)) process.destroyForcibly().waitFor();
+        } finally {
+            Files.deleteIfExists(log);
+        }
     }
 }

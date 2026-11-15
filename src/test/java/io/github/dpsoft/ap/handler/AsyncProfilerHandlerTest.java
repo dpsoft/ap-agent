@@ -120,9 +120,10 @@ class AsyncProfilerHandlerTest {
         final var response = profile("output=pprof");
         assertEquals(200, response.statusCode());
         assertTrue(isGzip(response.body()));
-        final var raw = gunzip(response.body());
-        assertTrue(pprofHasString(raw, "cpu"));
-        assertTrue(pprofHasString(raw, "FixtureApp"));
+        final var profile = pprof(response.body());
+        assertEquals(java.util.List.of("cpu"), profile.sampleTypes, profile.toString());
+        assertTrue(profile.samples > 0, profile.toString());
+        assertTrue(profile.hasFunction("FixtureApp"), profile.toString());
     }
 
     @Test
@@ -153,7 +154,8 @@ class AsyncProfilerHandlerTest {
     @Test
     @Disabled("Known bug (phase 5): /profiler/profile?output=pprof ignores the event parameter and always records CPU")
     void pprofOutputHonoursEvent() throws Exception {
-        assertTrue(pprofHasString(gunzip(profile("output=pprof&event=nativemem").body()), "malloc"));
+        final var profile = pprof(profile("output=pprof&event=nativemem").body());
+        assertEquals(java.util.List.of("malloc"), profile.sampleTypes, profile.toString());
     }
 
     @Test
