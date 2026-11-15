@@ -54,6 +54,9 @@ public final class ProfilerExecutor {
             profiler.execute(command.asFormatString(file.getAbsolutePath()));
             try {
                 Thread.sleep(command.getDuration().toMillis());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // restored even if stop() below throws and replaces it
+                throw e;
             } finally {
                 profiler.stop();
             }
