@@ -86,6 +86,18 @@ class AsyncProfilerHandlerTest {
     }
 
     @Test
+    void allocAndLockIntervalsReachTheProfiler() throws Exception {
+        // without an explicit interval async-profiler's defaults apply (it records alloc=0 and lock=10000 ns)
+        final var alloc = jfrSettings(gunzip(profile("event=alloc&output=jfr").body()));
+        assertEquals("0", alloc.get("alloc"), alloc.toString());
+        final var lock = jfrSettings(gunzip(profile("event=lock&output=jfr").body()));
+        assertEquals("10000", lock.get("lock"), lock.toString());
+        // an explicit interval is applied through the event's own option
+        assertEquals("1048576", jfrSettings(gunzip(profile("event=alloc&output=jfr&interval=1m").body())).get("alloc"));
+        assertEquals("1000000", jfrSettings(gunzip(profile("event=lock&output=jfr&interval=1ms").body())).get("lock"));
+    }
+
+    @Test
     void nativememEventRecordsMallocSamples() throws Exception {
         final var counts = jfrEventCounts(gunzip(profile("event=nativemem&output=jfr").body()));
         assertTrue(counts.getOrDefault("profiler.Malloc", 0L) > 0, counts.toString());
@@ -261,7 +273,7 @@ class AsyncProfilerHandlerTest {
         profile("output=flame");
         profile("output=jfr");
         get("/profiler/profile?output=flame&tag=" + encode("["));
-        profile("event=lock&interval=0");
+        profile("event=cpu&interval=0");
         assertEquals(before, temporaryFiles());
     }
 
@@ -275,7 +287,7 @@ class AsyncProfilerHandlerTest {
 
     @Test
     void profilerFailureReturns500() throws Exception {
-        final var response = profile("event=lock&interval=0");
+        final var response = profile("event=cpu&interval=0");
         assertEquals(500, response.statusCode(), text(response.body()));
         assertTrue(text(response.body()).startsWith("Profiling failed"), text(response.body()));
     }

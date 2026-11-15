@@ -75,7 +75,7 @@ class ProfilerServiceTest {
     @Test
     void profilerFailuresAreIOExceptions() {
         final var failure = assertThrows(IOException.class,
-                () -> profiler.profile("/profiler/profile", Map.of("event", "lock", "interval", "0", "duration", "1")));
+                () -> profiler.profile("/profiler/profile", Map.of("event", "cpu", "interval", "0", "duration", "1")));
         assertTrue(failure.getMessage().startsWith("Profiling failed"), failure.getMessage());
     }
 

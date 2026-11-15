@@ -24,15 +24,22 @@ public class Command {
         final var eventType = getEventType(operation, params, output);
         final var duration = getDuration(params);
         final var eventParams = getEventParams(params);
-        final var interval = getInterval(params, configuration.profiler);
+        final var interval = getInterval(params, eventType, configuration.profiler);
         final var file = params.getOrDefault("file", "profile.jfr");
 
         return new Command(eventType, duration, eventParams, interval, file, output);
     }
 
-    private static String getInterval(Map<String, String> params, AgentConfiguration.Profiler configuration) {
-        if(params.get("interval") != null) return params.get("interval");
-        return configuration.interval;
+    /** Events whose interval is a time, which the configured sampling interval applies to. */
+    private static final java.util.Set<String> TIME_SAMPLED_EVENTS = java.util.Set.of(Events.CPU, Events.CTIMER, Events.ITIMER, Events.WALL);
+
+    /**
+     * An explicit {@code interval} always wins. Otherwise the configured interval (a time) only applies to CPU and
+     * wall-clock events; alloc, lock and nativemem keep async-profiler's own defaults.
+     */
+    private static String getInterval(Map<String, String> params, String eventType, AgentConfiguration.Profiler configuration) {
+        if (params.get("interval") != null) return params.get("interval");
+        return TIME_SAMPLED_EVENTS.contains(eventType) ? configuration.interval : null;
     }
 
     private Command(String eventType, Duration durationSeconds, List<String> eventParams, String interval, String file, Output output) {
@@ -117,11 +124,24 @@ public class Command {
         }
     }
 
+    /**
+     * The async-profiler start command. async-profiler only applies {@code interval} to CPU and wall-clock events: the
+     * sampling of alloc, lock and nativemem has its own options, so an explicit interval is passed through them.
+     */
     public String asFormatString(String absolutePath) {
         final var sb = new StringBuilder().append("start,jfr,event=").append(eventType);
-        if (interval != null) sb.append(",interval=").append(interval);
+        if (interval != null) sb.append(',').append(intervalOption(eventType)).append('=').append(interval);
         sb.append(",file=").append(absolutePath);
         return sb.toString();
+    }
+
+    private static String intervalOption(String eventType) {
+        switch (eventType) {
+            case Events.ALLOC: return "alloc";        // bytes
+            case Events.LOCK: return "lock";          // total wait time threshold
+            case "nativemem": return "nativemem";     // bytes
+            default: return "interval";
+        }
     }
 
     public Duration getDuration() {

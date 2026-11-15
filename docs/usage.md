@@ -9,7 +9,7 @@ Attach the agent with `-javaagent` and ask for profiles over HTTP: every request
 | `event` | `ctimer` | What to sample: `cpu`, `ctimer`, `itimer`, `wall`, `alloc`, `lock`, `nativemem`. |
 | `output` | `jfr` | `flame` (or `flamegraph`), `heatmap`, `jfr`, `pprof` or `collapsed`. |
 | `duration` | `30` | Seconds to record. `seconds` is accepted as an alias. |
-| `interval` | `10000000` | Sampling interval: nanoseconds for CPU events, bytes for `alloc`. Defaults to the `ap-agent.profiler.interval` setting. |
+| `interval` | | CPU and wall clock: sampling period, default `ap-agent.profiler.interval` (10 ms). `alloc`: bytes between samples, `lock`: wait time threshold, `nativemem`: bytes; without it they use async-profiler's defaults. Units such as `5ms` or `512k` are accepted. |
 | `params` | | Comma separated [converter options] such as `total`, `reverse`, `threads`, `title=My Title`: `params=total,minwidth=1` becomes `--total --minwidth 1`. |
 | `tag` | | Keep only the samples recorded inside [spans](span-filtering.md) whose tag matches this regex. |
 | `latency` | | Keep only the samples recorded inside spans that lasted at least this many milliseconds. |

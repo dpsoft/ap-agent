@@ -106,8 +106,9 @@ public final class FixtureApp {
         while (!Thread.currentThread().isInterrupted()) {
             long acc = 0;
             for (int i = 0; i < 200_000; i++) acc += (long) Math.sqrt(i);
-            retained.add(new byte[1024]);
-            if (retained.size() > 1_000) retained.clear();
+            // allocate a few MB per second, so that even one-second alloc profiles have samples
+            retained.add(new byte[64 * 1024]);
+            if (retained.size() > 64) retained.clear();
             final ByteBuffer direct = ByteBuffer.allocateDirect(64 * 1024);
             direct.put(0, (byte) acc);
             final Deflater deflater = new Deflater();

@@ -68,6 +68,24 @@ class CommandTest {
         assertEquals(Duration.ofSeconds(3), command(Map.of("seconds", " 3 ")).getDuration());
     }
 
+    @ParameterizedTest
+    @CsvSource({"cpu,10000000", "ctimer,10000000", "itimer,10000000", "wall,10000000"})
+    void configuredIntervalAppliesToTimeSampledEvents(String event, String expected) {
+        assertEquals(expected, command(Map.of("event", event)).interval);
+    }
+
+    @ParameterizedTest
+    @CsvSource({"alloc", "lock", "nativemem"})
+    void otherEventsKeepTheProfilerDefaults(String event) {
+        final var command = command(Map.of("event", event));
+        assertNull(command.interval);
+        assertEquals("start,jfr,event=" + event + ",file=/tmp/x.jfr", command.asFormatString("/tmp/x.jfr"));
+        assertEquals("1m", command(Map.of("event", event, "interval", "1m")).interval);
+        // async-profiler ignores `interval` for these events: it is passed through their own option
+        assertEquals("start,jfr,event=" + event + "," + event + "=1m,file=/tmp/x.jfr",
+                command(Map.of("event", event, "interval", "1m")).asFormatString("/tmp/x.jfr"));
+    }
+
     @Test
     void intervalFromParamsOverridesConfiguration() {
         assertEquals("1000", command(Map.of("interval", "1000")).interval);
@@ -107,7 +125,7 @@ class CommandTest {
     @Test
     void asFormatStringBuildsStartCommand() {
         final var command = command(Map.of("event", "alloc", "interval", "512k"));
-        assertEquals("start,jfr,event=alloc,interval=512k,file=/tmp/x.jfr", command.asFormatString("/tmp/x.jfr"));
+        assertEquals("start,jfr,event=alloc,alloc=512k,file=/tmp/x.jfr", command.asFormatString("/tmp/x.jfr"));
     }
 
     @ParameterizedTest
