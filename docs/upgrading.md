@@ -3,6 +3,9 @@
 * **Fixed outputs**: `output=collapsed` now returns collapsed stacks (it returned the JFR recording),
   `event=wall` flame graphs have samples (they came out empty), and `output=pprof` honours `event`
   (it always recorded CPU unless the Go path said otherwise).
+* **`interval` works for every event**: async-profiler only reads `interval` for CPU and wall-clock profiling, so it
+  had no effect with `event=alloc`, `lock` or `nativemem`; it is now passed through their own options. The configured
+  `ap-agent.profiler.interval` only applies to CPU and wall clock.
 * **Errors**: invalid parameters return `400` with a message instead of closing the connection, failures
   return `500`, and every response has a `Content-Type`; JFR and pprof declare `Content-Encoding: gzip`.
 * **Library API**: use `ProfilerService` and `Profile`. `Command` and `ProfilerExecutor` are now internal and

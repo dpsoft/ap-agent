@@ -7,7 +7,7 @@ Every setting can be overridden with a JVM system property, e.g. `-Dap-agent.ser
 | `ap-agent.server.host` | `0.0.0.0` | Address the HTTP server binds to. |
 | `ap-agent.server.port` | `8080` | Port of the HTTP server. |
 | `ap-agent.show-banner` | `true` | Print the banner at startup. |
-| `ap-agent.profiler.interval` | `10000000` | Default sampling interval (also `PROFILER_SAMPLE_INTERVAL`). |
+| `ap-agent.profiler.interval` | `10000000` | Default sampling interval of CPU and wall-clock events, in nanoseconds (also `PROFILER_SAMPLE_INTERVAL`). |
 | `ap-agent.handler.context` | `/profiler/profile` | Path of the main endpoint. |
 | `ap-agent.handler.go-mode` | `false` | Serve the `/debug/pprof/*` endpoints and default to pprof. |
 
