@@ -1,8 +1,6 @@
 package io.github.dpsoft.ap.util;
 
 import io.github.dpsoft.ap.command.Command;
-import io.vavr.CheckedFunction0;
-import io.vavr.control.Try;
 import one.convert.*;
 import one.jfr.JfrReader;
 import one.profiler.AsyncProfiler;
@@ -39,16 +37,22 @@ public final class ProfilerExecutor {
         this.profiler = profiler;
         this.command = command;
         this.arguments = getArguments(command);
-        this.file = Try.of(() -> File.createTempFile("ap-agent", ".jfr"))
-                .onSuccess(File::deleteOnExit)
-                .getOrElseThrow(() -> new RuntimeException("It has not been possible to create a temporal file for JFR."));
+        try {
+            this.file = File.createTempFile("ap-agent", ".jfr");
+            this.file.deleteOnExit();
+        } catch (IOException e) {
+            throw new UncheckedIOException("It has not been possible to create a temporal file for JFR.", e);
+        }
     }
 
     /**
      * Records for the requested duration. The profiler is always stopped once it started; on failure the temporary
      * recording is deleted and, if the thread was interrupted, its interrupt status is restored.
+     *
+     * @throws InterruptedIOException when the thread is interrupted while recording
+     * @throws IOException            or a runtime exception when the profiler cannot record (e.g. invalid options)
      */
-    public Try<ProfilerExecutor> run() {
+    public ProfilerExecutor run() throws IOException {
         try {
             profiler.execute(command.asFormatString(file.getAbsolutePath()));
             try {
@@ -56,17 +60,16 @@ public final class ProfilerExecutor {
             } finally {
                 profiler.stop();
             }
-            return Try.success(this);
+            return this;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             file.delete();
-            // vavr treats InterruptedException as fatal and rethrows it from Try.failure: wrap it in a regular failure
             final var interrupted = new InterruptedIOException("Profiling was interrupted");
             interrupted.initCause(e);
-            return Try.failure(interrupted);
-        } catch (Exception e) {
+            throw interrupted;
+        } catch (IOException | RuntimeException e) {
             file.delete();
-            return Try.failure(e);
+            throw e;
         }
     }
 
@@ -74,18 +77,16 @@ public final class ProfilerExecutor {
      * Converts the recording into a new temporary file holding the response body; the caller owns (and deletes)
      * it. The recording itself is always deleted.
      */
-    public Try<Path> convert() {
+    public Path convert() throws IOException {
         try {
             final var output = Files.createTempFile("ap-agent", ".out");
             try (var out = new BufferedOutputStream(Files.newOutputStream(output))) {
                 convert(arguments, out);
-            } catch (Exception | Error e) {
+            } catch (IOException | RuntimeException | Error e) {
                 Files.deleteIfExists(output);
                 throw e;
             }
-            return Try.success(output);
-        } catch (Exception e) {
-            return Try.failure(e);
+            return output;
         } finally {
             file.delete();
         }
@@ -100,15 +101,6 @@ public final class ProfilerExecutor {
         } finally {
             file.delete();
         }
-    }
-
-    public void pipeTo(CheckedFunction0<OutputStream> consumer) {
-        Try.of(consumer)
-                .onFailure(cause -> {
-                    file.delete();
-                    Logger.error(cause, "It has not been possible to create the output stream.");
-                })
-                .onSuccess(this::pipeTo);
     }
 
     private void convert(Arguments arguments, OutputStream out) throws IOException {
@@ -163,8 +155,9 @@ public final class ProfilerExecutor {
     }
 
     private static Arguments getArguments(Command command) {
-        final var params = command.eventParams.append(converterEvent(command.eventType));
-        return new Arguments(params.toJavaArray(String[]::new));
+        final var params = new java.util.ArrayList<>(command.eventParams);
+        params.add(converterEvent(command.eventType));
+        return new Arguments(params.toArray(new String[0]));
     }
 
     /** The temporary recording (visible for tests). */

@@ -81,14 +81,14 @@ class CommandTest {
     @Test
     void paramsAreSplitPrefixedAndKeyValuesExpanded() {
         final var command = command(Map.of("params", "total,include=com.foo.*,minwidth=1"));
-        assertEquals(List.of("--total", "--include", "com.foo.*", "--minwidth", "1"), command.eventParams.toJavaList());
+        assertEquals(List.of("--total", "--include", "com.foo.*", "--minwidth", "1"), command.eventParams);
     }
 
     @Test
     void spanFiltersKeepCommasAndFollowConverterParams() {
         final var command = command(Map.of("params", "total", "tag", "SparkTask:.*,taskAttemptId=123,.*", "latency", "50"));
         assertEquals(List.of("--total", "--tag", "SparkTask:.*,taskAttemptId=123,.*", "--latency", "50"),
-                command.eventParams.toJavaList());
+                command.eventParams);
     }
 
     @Test
@@ -101,7 +101,7 @@ class CommandTest {
         assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "slow")));
         assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "-1")));
         assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "9223372036855")));
-        assertEquals(List.of("--latency", "9223372036854"), command(Map.of("latency", "9223372036854")).eventParams.toJavaList());
+        assertEquals(List.of("--latency", "9223372036854"), command(Map.of("latency", "9223372036854")).eventParams);
     }
 
     @Test

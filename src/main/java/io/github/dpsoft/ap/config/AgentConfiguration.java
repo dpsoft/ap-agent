@@ -4,7 +4,6 @@ package io.github.dpsoft.ap.config;
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
 import com.typesafe.config.ConfigParseOptions;
-import io.vavr.control.Try;
 import org.tinylog.Logger;
 
 import java.util.HashSet;
@@ -70,9 +69,12 @@ public final class AgentConfiguration {
 
 
     private static Config loadConfig() {
-        return Try.of(() -> loadDefaults().getConfig("ap-agent"))
-                .onFailure(missing -> Logger.error(missing, () -> "It has not been found any configuration for AP Agent."))
-                .get();
+        try {
+            return loadDefaults().getConfig("ap-agent");
+        } catch (RuntimeException missing) {
+            Logger.error(missing, () -> "It has not been found any configuration for AP Agent.");
+            throw missing;
+        }
     }
 
     private static Config loadDefaults() {

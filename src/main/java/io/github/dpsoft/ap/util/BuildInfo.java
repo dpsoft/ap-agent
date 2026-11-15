@@ -1,8 +1,7 @@
 package io.github.dpsoft.ap.util;
 
 
-import io.vavr.control.Try;
-
+import java.io.IOException;
 import java.util.Properties;
 
 public final class BuildInfo {
@@ -26,11 +25,13 @@ public final class BuildInfo {
     }
 
     private static Properties loadProperties() {
-        return Try.of(() -> {
+        try (var is = BuildInfo.class.getResourceAsStream("/build-info.properties")) {
+            if (is == null) throw new IOException("build-info.properties not found");
             final var properties = new Properties();
-            final var is = BuildInfo.class.getResourceAsStream("/build-info.properties");
             properties.load(is);
             return properties;
-        }).getOrElseThrow((cause) -> new RuntimeException("Error trying to read build-info.properties", cause));
+        } catch (IOException cause) {
+            throw new RuntimeException("Error trying to read build-info.properties", cause);
+        }
     }
 }

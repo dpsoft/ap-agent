@@ -2,9 +2,10 @@ package io.github.dpsoft.ap.util;
 
 import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.github.dpsoft.ap.functions.Functions;
-import io.vavr.control.Try;
 import org.tinylog.Logger;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Scanner;
 
@@ -19,8 +20,9 @@ public final class Banner {
 
             final var substitutor = new StrSubstitutor(Map.of("welcome", welcomeMessage, "powered", poweredByMessage));
 
-            Try.withResources(() -> Banner.class.getResourceAsStream("/agent-banner.txt")).of((stream) -> {
-                final var banner = substitutor.replace(new String(stream.readAllBytes()));
+            try (var stream = Banner.class.getResourceAsStream("/agent-banner.txt")) {
+                if (stream == null) throw new IOException("agent-banner.txt not found");
+                final var banner = substitutor.replace(new String(stream.readAllBytes(), StandardCharsets.UTF_8));
                 final var scanner = new Scanner(banner);
 
                 int count = 0;
@@ -34,9 +36,9 @@ public final class Banner {
                     System.out.println(line);
                 }
                 System.out.println();
-                return null; // void :(
-
-            }).onFailure((error) -> Logger.warn(error, () -> "It has not been possible to show the banner."));
+            } catch (IOException | RuntimeException error) {
+                Logger.warn(error, () -> "It has not been possible to show the banner.");
+            }
         }
     }
 

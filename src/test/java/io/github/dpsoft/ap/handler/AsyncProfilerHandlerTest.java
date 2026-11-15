@@ -147,7 +147,9 @@ class AsyncProfilerHandlerTest {
     /** Converts with the converter arguments the agent derives from the given query parameters. */
     private static long flameTotal(java.nio.file.Path jfr, Map<String, String> query) throws Exception {
         final var command = Command.from("profile", query, AgentConfiguration.instance());
-        final var args = new one.convert.Arguments(command.eventParams.append("--cpu").toJavaArray(String[]::new));
+        final var params = new java.util.ArrayList<>(command.eventParams);
+        params.add("--cpu");
+        final var args = new one.convert.Arguments(params.toArray(new String[0]));
         final var out = new java.io.ByteArrayOutputStream();
         try (var reader = new one.jfr.JfrReader(jfr.toString())) {
             final var converter = new one.convert.JfrToFlame(reader, args);
