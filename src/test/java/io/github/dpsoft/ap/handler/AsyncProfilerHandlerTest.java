@@ -95,6 +95,8 @@ class AsyncProfilerHandlerTest {
         // an explicit interval is applied through the event's own option
         assertEquals("1048576", jfrSettings(gunzip(profile("event=alloc&output=jfr&interval=1m").body())).get("alloc"));
         assertEquals("1000000", jfrSettings(gunzip(profile("event=lock&output=jfr&interval=1ms").body())).get("lock"));
+        // a leading zero is decimal, not octal
+        assertEquals("8", jfrSettings(gunzip(profile("event=alloc&output=jfr&interval=08").body())).get("alloc"));
     }
 
     @Test
@@ -253,7 +255,8 @@ class AsyncProfilerHandlerTest {
     @Test
     void invalidParametersReturn400() throws Exception {
         for (var query : new String[]{"duration=abc", "duration=0", "duration=9223372036854776", "latency=slow",
-                "event=alloc&interval=abc", "event=lock&interval=-1", "event=nativemem&interval=abc"}) {
+                "event=alloc&interval=abc", "event=lock&interval=-1", "event=nativemem&interval=abc",
+                "event=alloc&interval=8589934592g", "event=lock&interval=9223372036855ms"}) {
             final var response = get("/profiler/profile?" + query);
             assertEquals(400, response.statusCode(), query);
             assertTrue(text(response.body()).startsWith("Invalid parameter"), query + ": " + text(response.body()));

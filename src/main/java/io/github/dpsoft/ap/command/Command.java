@@ -135,20 +135,45 @@ public class Command {
         return sb.toString();
     }
 
-    // async-profiler reads the first letter after the number: n, u, m (milli), s for times; b, k, m, g for sizes
-    private static final java.util.regex.Pattern TIME = java.util.regex.Pattern.compile("\\d{1,18}([num]s?|s)?", java.util.regex.Pattern.CASE_INSENSITIVE);
-    private static final java.util.regex.Pattern BYTES = java.util.regex.Pattern.compile("\\d{1,18}([kmg]b?|b)?", java.util.regex.Pattern.CASE_INSENSITIVE);
+    private static final java.util.regex.Pattern INTERVAL =
+            java.util.regex.Pattern.compile("(\\d{1,19})\\s*([a-z]{0,2})", java.util.regex.Pattern.CASE_INSENSITIVE);
 
     /**
-     * async-profiler validates {@code interval}, but the alloc, lock and nativemem options silently disable the event
-     * for an unparsable or negative value and fall back to CPU profiling: reject those here (a 400).
+     * Parses an explicit interval and returns it normalized to base units (nanoseconds or bytes) as a plain decimal.
+     * async-profiler's own parser reads octal/hex prefixes, multiplies without overflow checks, and for alloc, lock and
+     * nativemem disables the event on a bad value, silently falling back to CPU profiling: so the agent parses it.
      */
     private static String validInterval(String value, String eventType) {
         final boolean bytes = Events.ALLOC.equals(eventType) || "nativemem".equals(eventType);
-        if (!(bytes ? BYTES : TIME).matcher(value).matches()) {
+        final var matcher = INTERVAL.matcher(value);
+        final long multiplier = matcher.matches() ? multiplier(matcher.group(2).toLowerCase(java.util.Locale.ROOT), bytes) : -1;
+        if (multiplier < 0) {
             throw new IllegalArgumentException("interval must be a non-negative " + (bytes ? "size such as 524288, 512k or 2m" : "time such as 10000000, 10ms or 1s") + " for event " + eventType + ": " + value);
         }
-        return value;
+        try {
+            return Long.toString(Math.multiplyExact(Long.parseLong(matcher.group(1)), multiplier));
+        } catch (ArithmeticException | NumberFormatException e) {
+            throw new IllegalArgumentException("interval is too large for event " + eventType + ": " + value);
+        }
+    }
+
+    private static long multiplier(String unit, boolean bytes) {
+        if (bytes) {
+            switch (unit) {
+                case "": case "b": return 1;
+                case "k": case "kb": return 1L << 10;
+                case "m": case "mb": return 1L << 20;
+                case "g": case "gb": return 1L << 30;
+                default: return -1;
+            }
+        }
+        switch (unit) {
+            case "": case "n": case "ns": return 1;
+            case "u": case "us": return 1_000;
+            case "m": case "ms": return 1_000_000;
+            case "s": return 1_000_000_000;
+            default: return -1;
+        }
     }
 
     private static String intervalOption(String eventType) {

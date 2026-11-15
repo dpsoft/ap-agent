@@ -80,26 +80,30 @@ class CommandTest {
         final var command = command(Map.of("event", event));
         assertNull(command.interval);
         assertEquals("start,jfr,event=" + event + ",file=/tmp/x.jfr", command.asFormatString("/tmp/x.jfr"));
-        assertEquals("1m", command(Map.of("event", event, "interval", "1m")).interval);
-        // async-profiler ignores `interval` for these events: it is passed through their own option
-        assertEquals("start,jfr,event=" + event + "," + event + "=1m,file=/tmp/x.jfr",
+        // async-profiler ignores `interval` for these events: it is passed through their own option, normalized
+        final var normalized = event.equals("lock") ? "1000000" : "1048576"; // 1m: one millisecond, or one MiB
+        assertEquals("start,jfr,event=" + event + "," + event + "=" + normalized + ",file=/tmp/x.jfr",
                 command(Map.of("event", event, "interval", "1m")).asFormatString("/tmp/x.jfr"));
     }
 
     @ParameterizedTest
     @CsvSource({"alloc,abc", "alloc,-1", "alloc,10ms", "alloc,10s", "nativemem,1.5m", "lock,-1", "lock,10k", "lock,1g",
-            "cpu,abc", "cpu,-5", "cpu,0x10", "wall,99999999999999999999"})
+            "cpu,abc", "cpu,-5", "cpu,0x10", "wall,99999999999999999999",
+            // overflow once multiplied by the unit
+            "alloc,8589934592g", "nativemem,8589934592g", "lock,9223372036855ms", "cpu,9223372037s"})
     void invalidIntervalsAreRejected(String event, String interval) {
         // never let async-profiler silently fall back to CPU profiling
         final var error = assertThrows(IllegalArgumentException.class, () -> command(Map.of("event", event, "interval", interval)));
         assertTrue(error.getMessage().contains("interval"), error.getMessage());
     }
 
+    /** Normalized to base units in decimal: async-profiler would read leading zeros as octal and overflow silently. */
     @ParameterizedTest
-    @CsvSource({"alloc,0", "alloc,512k", "alloc,2M", "alloc,64kb", "nativemem,1g", "lock,0", "lock,1ms", "lock,1m", "lock,10US",
-            "lock,500ns", "cpu,1000000", "wall,5ms", "itimer,1s"})
-    void validIntervalsAreAccepted(String event, String interval) {
-        assertEquals(interval, command(Map.of("event", event, "interval", interval)).interval);
+    @CsvSource({"alloc,0,0", "alloc,512k,524288", "alloc,2M,2097152", "alloc,64kb,65536", "alloc,08,8", "nativemem,1g,1073741824",
+            "lock,0,0", "lock,1ms,1000000", "lock,1m,1000000", "lock,10US,10000", "lock,500ns,500", "lock,09ms,9000000",
+            "cpu,1000000,1000000", "wall,5ms,5000000", "itimer,1s,1000000000"})
+    void validIntervalsAreNormalized(String event, String interval, String normalized) {
+        assertEquals(normalized, command(Map.of("event", event, "interval", interval)).interval);
     }
 
     @Test
@@ -141,7 +145,7 @@ class CommandTest {
     @Test
     void asFormatStringBuildsStartCommand() {
         final var command = command(Map.of("event", "alloc", "interval", "512k"));
-        assertEquals("start,jfr,event=alloc,alloc=512k,file=/tmp/x.jfr", command.asFormatString("/tmp/x.jfr"));
+        assertEquals("start,jfr,event=alloc,alloc=524288,file=/tmp/x.jfr", command.asFormatString("/tmp/x.jfr"));
     }
 
     @ParameterizedTest
