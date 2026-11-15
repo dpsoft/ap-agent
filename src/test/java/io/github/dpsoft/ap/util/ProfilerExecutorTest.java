@@ -21,6 +21,15 @@ class ProfilerExecutorTest {
     }
 
     @Test
+    void validatingARequestAllocatesNothing() throws Exception {
+        assumeTrue(AsyncProfilerLoader.isSupported());
+        final var executor = ProfilerExecutor.with(AsyncProfilerLoader.load(),
+                Command.from("profile", Map.of("duration", "1"), AgentConfiguration.instance()));
+        assertNull(executor.recordingFile(), "the recording file is only created by run()");
+        assertThrows(IllegalStateException.class, executor::convert);
+    }
+
+    @Test
     void interruptionStopsTheProfilerRestoresTheFlagAndDeletesTheRecording() throws Exception {
         assumeTrue(AsyncProfilerLoader.isSupported());
         final var profiler = AsyncProfilerLoader.load();

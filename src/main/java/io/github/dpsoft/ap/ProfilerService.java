@@ -61,16 +61,11 @@ public final class ProfilerService {
      *                                  is reported as {@link java.io.InterruptedIOException}
      */
     public Profile profile(String path, Map<String, String> queryParams) throws IOException {
+        // validate everything first (400 even while busy); nothing is allocated before the session is taken
         final var command = Command.from(Functions.lastSegment(path), queryParams, configuration);
-        // take the session before allocating anything: a busy request must not create (or register) a recording file
+        final var executor = ProfilerExecutor.with(profiler, command); // IllegalArgumentException: converter options
         if (!SESSION.tryLock()) throw new ProfilerBusyException();
         try {
-            final ProfilerExecutor executor;
-            try {
-                executor = ProfilerExecutor.with(profiler, command); // IllegalArgumentException: converter options
-            } catch (java.io.UncheckedIOException e) { // the temporary recording file could not be created
-                throw e.getCause();
-            }
             try {
                 executor.run();
             } catch (java.io.InterruptedIOException interrupted) {
