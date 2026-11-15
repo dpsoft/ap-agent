@@ -365,6 +365,7 @@
                                         <argument>${project.build.directory}/it-app-libs/async-profiler-api.jar</argument>
                                         <argument>${project.build.testOutputDirectory}</argument>
                                         <argument>${project.basedir}/docs/assets</argument>
+                                        <argument>${project.build.directory}/ap-agent-promo.mp4</argument>
                                     </arguments>
                                 </configuration>
                             </execution>
