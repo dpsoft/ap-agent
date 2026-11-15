@@ -1,22 +1,61 @@
-name: Maven CI/CD
+name: CI
 
 on:
   push:
-    branches: [ main ]
-    pull_request:
-      branches: [ main ]
+    branches: [ main, 'integration/**' ]
+  pull_request:
+    branches: [ main, 'integration/**' ]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
-  build_and_test:
-
-    runs-on: ubuntu-latest
+  build:
+    name: JDK ${{ matrix.java }} / ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ ubuntu-latest ]
+        java: [ '11', '17', '21', '25' ]
+        include:
+          # async-profiler ships linux-arm64 natives too: make sure the agent loads and profiles there
+          - os: ubuntu-24.04-arm
+            java: '21'
 
     steps:
-      - uses: actions/checkout@v2
-      - name: Set up JDK 11
-        uses: actions/setup-java@v1
-        with:
-          java-version: 11
+      - uses: actions/checkout@v7
 
-      - name: Build project with Maven
-        run: mvn -B package --file pom.xml
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: ${{ matrix.java }}
+          cache: maven
+
+      - name: Build and test (unit + smoke tests)
+        run: mvn -B -ntp verify -Dgpg.skip=true
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports-${{ matrix.os }}-jdk${{ matrix.java }}
+          path: |
+            target/surefire-reports/
+            target/failsafe-reports/
+          retention-days: 7
+
+      - name: Upload coverage report
+        if: matrix.java == '21' && matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: jacoco-report
+          path: target/site/jacoco/
+          retention-days: 14
