@@ -6,41 +6,43 @@
 
     <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent</artifactId>
-    <version>0.1.10</version>
+    <version>0.2.0</version>
     <name>ap-agent</name>
     <description>Java agent that acts as a proxy to the almighty Async Profiler</description>
     <url>https://github.com/dpsoft/ap-agent</url>
     <packaging>jar</packaging>
     <properties>
-        <me.bechberger.ap-loader.version>4.4-13</me.bechberger.ap-loader.version>
-        <io.vavr.version>0.10.6</io.vavr.version>
-        <com.typesafe.config.version>1.4.5</com.typesafe.config.version>
-        <org.tinylog.version>2.7.0</org.tinylog.version>
+        <me.bechberger.ap-loader.version>4.6-14</me.bechberger.ap-loader.version>
+        <com.typesafe.config.version>1.4.10</com.typesafe.config.version>
+        <org.tinylog.version>2.8.1</org.tinylog.version>
+        <!-- async-profiler API that applications use to record spans (same version as ap-loader's async-profiler) -->
+        <async-profiler.api.version>4.6</async-profiler.api.version>
+        <!-- last published release, compared against the current build by CompatibilityIT -->
+        <ap-agent.baseline.version>0.1.10</ap-agent.baseline.version>
+        <junit.version>5.14.4</junit.version>
+        <surefire.version>3.6.1</surefire.version>
+        <jacoco.version>0.8.16</jacoco.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-    <repositories>
-        <repository>
-            <id>oss-snapshots</id>
-            <name>Oss Snapshots</name>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-        </repository>
-        <repository>
-            <id>maven-central</id>
-            <name>Maven central</name>
-            <url>https://repo.maven.apache.org/maven2/</url>
-        </repository>
-    </repositories>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.junit</groupId>
+                <artifactId>junit-bom</artifactId>
+                <version>${junit.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
 
     <dependencies>
         <dependency>
             <groupId>me.bechberger</groupId>
             <artifactId>ap-loader-all</artifactId>
             <version>${me.bechberger.ap-loader.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vavr</groupId>
-            <artifactId>vavr</artifactId>
-            <version>${io.vavr.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>
@@ -56,6 +58,26 @@
             <groupId>org.tinylog</groupId>
             <artifactId>tinylog-impl</artifactId>
             <version>${org.tinylog.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- JaCoCo agent attached to the JVMs of the smoke tests (coverage of premain, Runner, Server) -->
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.agent</artifactId>
+            <version>${jacoco.version}</version>
+            <classifier>runtime</classifier>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- only to compile the servlet example of the README (Jakarta Servlet 6.0 supports Java 11) -->
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <build>
@@ -77,9 +99,108 @@
         </resources>
         <plugins>
             <plugin>
+                <!-- exposes ${groupId:artifactId:type} paths of dependencies, used by the smoke tests -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.11.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <!-- jars placed on the classpath of the profiled application in the smoke tests -->
+                        <id>copy-application-jars</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <!-- the official async-profiler API (one.profiler.Span), as documented for span filters -->
+                                <artifactItem>
+                                    <groupId>tools.profiler</groupId>
+                                    <artifactId>async-profiler</artifactId>
+                                    <version>${async-profiler.api.version}</version>
+                                    <destFileName>async-profiler-api.jar</destFileName>
+                                </artifactItem>
+                                <!-- another ap-loader version: the agent must survive it without killing the application -->
+                                <artifactItem>
+                                    <groupId>me.bechberger</groupId>
+                                    <artifactId>ap-loader-all</artifactId>
+                                    <version>4.5-13</version>
+                                    <destFileName>conflicting-ap-loader.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/it-app-libs</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <!-- isolate temporary files of the test JVM (checked by the leak test) -->
+                        <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                    </systemPropertyVariables>
+                    <!-- jacoco sets argLine; keep it and allow the native profiler library on JDK 22+ -->
+                    <argLine>@{argLine} -XX:+IgnoreUnrecognizedVMOptions --enable-native-access=ALL-UNNAMED</argLine>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${surefire.version}</version>
+                <configuration>
+                    <argLine>@{argLine} -XX:+IgnoreUnrecognizedVMOptions --enable-native-access=ALL-UNNAMED</argLine>
+                    <systemPropertyVariables>
+                        <ap-agent.it.jacoco-agent>${org.jacoco:org.jacoco.agent:jar:runtime}</ap-agent.it.jacoco-agent>
+                        <ap-agent.it.jacoco-destfile>${project.build.directory}/jacoco-it.exec</ap-agent.it.jacoco-destfile>
+                        <ap-agent.it.async-profiler-api>${project.build.directory}/it-app-libs/async-profiler-api.jar</ap-agent.it.async-profiler-api>
+                        <ap-agent.it.conflicting-ap-loader>${project.build.directory}/it-app-libs/conflicting-ap-loader.jar</ap-agent.it.conflicting-ap-loader>
+                        <ap-agent.it.baseline-dir>${project.build.directory}/baseline</ap-agent.it.baseline-dir>
+                        <ap-agent.it.baseline-version>${ap-agent.baseline.version}</ap-agent.it.baseline-version>
+                        <ap-agent.it.jar>${project.build.directory}/${project.build.finalName}.jar</ap-agent.it.jar>
+                        <ap-agent.it.test-classes>${project.build.testOutputDirectory}</ap-agent.it.test-classes>
+                    </systemPropertyVariables>
+                </configuration>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -124,10 +245,6 @@
                                     <shadedPattern>io.github.dpsoft.ap.libs.com.typesafe.config</shadedPattern>
                                 </relocation>
                                 <relocation>
-                                    <pattern>io.vavr</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.io.vavr</shadedPattern>
-                                </relocation>
-                                <relocation>
                                     <pattern>org.tinylog</pattern>
                                     <shadedPattern>io.github.dpsoft.ap.libs.org.tinylog</shadedPattern>
                                 </relocation>
@@ -147,7 +264,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.4.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -160,9 +277,10 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.16.0</version>
                 <configuration>
-                    <source>11</source>
-                    <target>11</target>
+                    <!-- compile against the Java 11 API even when building with a newer JDK -->
+                    <release>11</release>
                 </configuration>
             </plugin>
             <plugin>
@@ -184,7 +302,7 @@
             <plugin>
                 <groupId>org.sonatype.central</groupId>
                 <artifactId>central-publishing-maven-plugin</artifactId>
-                <version>0.9.0</version>
+                <version>0.12.0</version>
                 <extensions>true</extensions>
                 <configuration>
                     <autoPublish>true</autoPublish>
@@ -207,6 +325,56 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <!-- mvn -Passets verify -Dgpg.skip=true: regenerates docs/assets (needs Chrome, ffmpeg and Go) -->
+            <id>assets</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.microsoft.playwright</groupId>
+                    <artifactId>playwright</artifactId>
+                    <version>1.64.0</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.6.4</version>
+                        <executions>
+                            <execution>
+                                <id>generate-assets</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>java</executable>
+                                    <classpathScope>test</classpathScope>
+                                    <environmentVariables>
+                                        <!-- use the installed Chrome instead of downloading browsers -->
+                                        <PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD>1</PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD>
+                                    </environmentVariables>
+                                    <arguments>
+                                        <argument>-classpath</argument>
+                                        <classpath/>
+                                        <argument>${project.basedir}/scripts/assets/GenerateAssets.java</argument>
+                                        <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
+                                        <argument>${project.build.directory}/it-app-libs/async-profiler-api.jar</argument>
+                                        <argument>${project.build.testOutputDirectory}</argument>
+                                        <argument>${project.basedir}/docs/assets</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>

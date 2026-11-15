@@ -1,0 +1,13 @@
+# Unit tests and smoke tests (-javaagent) are uploaded as two JaCoCo reports and merged by Codecov.
+coverage:
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 1%   # do not fail a PR for noise
+    patch:
+      default:
+        informational: true
+comment:
+  layout: "condensed_header, diff, files"
+  require_changes: true
