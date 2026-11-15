@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64"
+     role="img" aria-label="ap-agent">
+  <title>ap-agent</title>
+  <!-- A flame built from profile bars, as in the perf-agent mark, coloured with the
+       frame types of async-profiler flame graphs, bottom-up the way a JVM stack
+       reads: native (red) -> C++ / JVM (yellow) -> kernel (orange) -> Java (green)
+       -> inlined Java (cyan). -->
+  <g>
+    <rect x="4"  y="52" width="56" height="8" rx="2.5" fill="#e15a5a"/>
+    <rect x="10" y="42" width="18" height="8" rx="2.5" fill="#e15a5a" opacity=".72"/>
+    <rect x="31" y="42" width="25" height="8" rx="2.5" fill="#c8c83c"/>
+    <rect x="18" y="32" width="12" height="8" rx="2.5" fill="#e17d00" opacity=".78"/>
+    <rect x="33" y="32" width="20" height="8" rx="2.5" fill="#50e150"/>
+    <rect x="26" y="22" width="8"  height="8" rx="2.5" fill="#50e150" opacity=".72"/>
+    <rect x="36" y="22" width="15" height="8" rx="2.5" fill="#50e150"/>
+    <rect x="34" y="12" width="14" height="8" rx="2.5" fill="#3fbfbf"/>
+    <rect x="38" y="4"  width="8"  height="6" rx="2"   fill="#7fd9d9"/>
+  </g>
+</svg>

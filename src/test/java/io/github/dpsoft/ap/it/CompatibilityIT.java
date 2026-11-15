@@ -93,7 +93,10 @@ class CompatibilityIT {
         assertTrue(expectedSha1.matches("[0-9a-f]{40}"), "unexpected checksum file: " + checksum.body());
         if (!Files.exists(baselineJar) || !sha1(baselineJar).equals(expectedSha1)) {
             final var download = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base))
-                    .timeout(java.time.Duration.ofMinutes(2)).build(), HttpResponse.BodyHandlers.ofFile(baselineJar));
+                    .timeout(java.time.Duration.ofMinutes(2)).build(),
+                    // ofFile(path) alone does not truncate an existing (e.g. partial) download
+                    HttpResponse.BodyHandlers.ofFile(baselineJar, java.nio.file.StandardOpenOption.CREATE,
+                            java.nio.file.StandardOpenOption.WRITE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING));
             assertEquals(200, download.statusCode(), "download of " + base);
         }
         assertEquals(expectedSha1, sha1(baselineJar), "the baseline jar must be the one published on Maven Central");

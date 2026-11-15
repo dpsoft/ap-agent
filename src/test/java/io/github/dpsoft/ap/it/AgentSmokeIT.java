@@ -74,6 +74,26 @@ class AgentSmokeIT {
         }
     }
 
+    /** The agent handles requests concurrently: a request arriving during a recording gets an immediate 409. */
+    @Test
+    void concurrentRequestFailsFastWith409() throws Exception {
+        try (var agent = AgentProcess.start()) {
+            final var pool = java.util.concurrent.Executors.newSingleThreadExecutor();
+            try {
+                final var first = pool.submit(() -> agent.get("/profiler/profile?duration=3&output=flame"));
+                Thread.sleep(750);
+                final long start = System.nanoTime();
+                final var second = agent.get("/profiler/profile?duration=1&output=flame");
+                final long millis = java.util.concurrent.TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start);
+                assertEquals(409, second.statusCode(), text(second.body()));
+                assertTrue(millis < 1_500, "the busy response must not wait for the running session: " + millis + " ms");
+                assertEquals(200, first.get(30, java.util.concurrent.TimeUnit.SECONDS).statusCode());
+            } finally {
+                pool.shutdownNow();
+            }
+        }
+    }
+
     @Test
     void bannerCanBeDisabled() throws Exception {
         try (var agent = AgentProcess.start("ap-agent.show-banner=false")) {

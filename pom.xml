@@ -6,7 +6,7 @@
 
     <groupId>io.github.dpsoft</groupId>
     <artifactId>ap-agent</artifactId>
-    <version>0.1.10</version>
+    <version>0.2.0</version>
     <name>ap-agent</name>
     <description>Java agent that acts as a proxy to the almighty Async Profiler</description>
     <url>https://github.com/dpsoft/ap-agent</url>
@@ -62,6 +62,13 @@
         <dependency>
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <!-- only to compile the servlet example of the README (Jakarta Servlet 6.0 supports Java 11) -->
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -308,6 +315,56 @@
             </plugin>
         </plugins>
     </build>
+    <profiles>
+        <profile>
+            <!-- mvn -Passets verify -Dgpg.skip=true: regenerates docs/assets (needs Chrome, ffmpeg and Go) -->
+            <id>assets</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.microsoft.playwright</groupId>
+                    <artifactId>playwright</artifactId>
+                    <version>1.64.0</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.6.4</version>
+                        <executions>
+                            <execution>
+                                <id>generate-assets</id>
+                                <phase>verify</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>java</executable>
+                                    <classpathScope>test</classpathScope>
+                                    <environmentVariables>
+                                        <!-- use the installed Chrome instead of downloading browsers -->
+                                        <PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD>1</PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD>
+                                    </environmentVariables>
+                                    <arguments>
+                                        <argument>-classpath</argument>
+                                        <classpath/>
+                                        <argument>${project.basedir}/scripts/assets/GenerateAssets.java</argument>
+                                        <argument>${project.build.directory}/${project.build.finalName}.jar</argument>
+                                        <argument>${project.build.directory}/it-app-libs/async-profiler-api.jar</argument>
+                                        <argument>${project.build.testOutputDirectory}</argument>
+                                        <argument>${project.basedir}/docs/assets</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
+
     <distributionManagement>
         <snapshotRepository>
             <id>ossrh</id>

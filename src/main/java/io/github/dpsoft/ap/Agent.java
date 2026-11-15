@@ -1,6 +1,5 @@
 package io.github.dpsoft.ap;
 
-import io.github.dpsoft.ap.handler.AsyncProfilerHandler;
 import io.github.dpsoft.ap.util.Banner;
 import io.github.dpsoft.ap.util.Runner;
 import io.github.dpsoft.ap.util.Server;
@@ -14,8 +13,7 @@ public final class Agent {
             Banner.show(configuration);
 
             Server.with(configuration, (server) -> {
-                final var profilerHandler = new AsyncProfilerHandler(profiler, configuration);
-                server.createContext("/", profilerHandler);
+                server.createContext("/", new ProfilerService(profiler, configuration).httpHandler());
             });
         });
     }

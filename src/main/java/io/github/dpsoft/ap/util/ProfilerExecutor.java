@@ -92,6 +92,11 @@ public final class ProfilerExecutor {
         }
     }
 
+    /** Deletes the temporary recording of an executor that will not run. */
+    public void discard() {
+        file.delete();
+    }
+
     /** Converts the recording straight into {@code out} (library use); failures are logged. */
     public void pipeTo(OutputStream out) {
         try {
