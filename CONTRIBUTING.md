@@ -1,0 +1,29 @@
+# Contributing
+
+Issues and pull requests are welcome. Please run the full build before opening a pull request.
+
+## Building and testing
+
+```shell
+mvn verify -Dgpg.skip=true          # unit tests, smoke tests with -javaagent and the compatibility tests
+scripts/bench-startup.sh            # agent startup time and loaded classes
+mvn -Passets verify -Dgpg.skip=true # regenerate the images in docs/assets
+```
+
+* **Unit tests** (`src/test/java`) cover the parsing and the endpoint, against the real profiler in the test JVM.
+* **Smoke tests** (`*IT`, run by failsafe after `package`) attach the shaded jar to a separate JVM with `-javaagent`.
+* **Compatibility tests** (`CompatibilityIT`) download the last release from Maven Central and compare every response
+  with the current build; intended differences are declared in the test, and `target/compatibility-report.md` lists
+  them all.
+* **Documentation examples** (`src/test/java/io/github/dpsoft/ap/examples`) are compiled and run, and
+  `ReadmeExamplesTest` checks that the docs show exactly that code: change both together.
+
+The project targets Java 11 (`--release 11`); CI builds on JDK 11, 17, 21 and 25, and on Linux arm64.
+
+## Releasing
+
+1. Set the release version in `pom.xml` (and in the docs, which show it in the download links).
+2. `mvn clean deploy` publishes the signed artifacts to Maven Central (needs the Central credentials and the GPG key).
+3. Create a GitHub release with the tag `v<version>`: the `Release` workflow builds it again and attaches
+   `ap-agent-<version>.jar` and `ap-agent.jar` (for the `releases/latest/download/ap-agent.jar` link).
+4. Bump `ap-agent.baseline.version` in `pom.xml` to the new release, so `CompatibilityIT` compares against it.

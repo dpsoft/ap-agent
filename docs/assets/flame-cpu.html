@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<style>
+	:root      {--bg: #ffffff; --fg: #000000; --hl-bg: #ffffe0; --hl-border: #ffc000; --link: #0366d6; --legend-bg: #ffffe0; --legend-border: #666666}
+	:root.dark {--bg: #1e1e1e; --fg: #cccccc; --hl-bg: #3a3a00; --hl-border: #8a7000; --link: #58a6ff; --legend-bg: #333333; --legend-border: #888888}
+	:root      {--t0: #3a6f3a; --t1: #009b00; --t2: #009595; --t3: #aa2020; --t4: #aaaa20; --t5: #cc5820; --t6: #7c8f45}
+	:root.dark {--t0: #b2e1b2; --t1: #50e150; --t2: #50cccc; --t3: #e15a5a; --t4: #c8c83c; --t5: #e17d00; --t6: #cce880}
+	body {margin: 0; padding: 10px 10px 22px 10px; background-color: var(--bg); color: var(--fg)}
+	h1 {margin: 5px 0 0 0; font-size: 18px; font-weight: normal; text-align: center}
+	header {margin: -22px 0 6px 0}
+	button {border: none; background: none; width: 24px; height: 24px; cursor: pointer; margin: 0; padding: 2px 0 0 0; text-align: center}
+	button:hover {background-color: var(--hl-bg); outline: 1px solid var(--hl-border); border-radius: 4px}
+	dl {margin: 0 4px 8px 4px}
+	dt {margin: 1px; padding: 2px 0; font-weight: bold}
+	dd {margin: 1px; padding: 2px 4px}
+	dl.frames {float: left; width: 160px}
+	dl.frames > dd {color: #000000}
+	dl.hotkeys {clear: left; border-top: 1px solid var(--legend-border)}
+	dl.hotkeys > dt {float: left; clear: left; width: 158px; margin-right: 4px; text-align: right}
+	dl.hotkeys > dd {float: left}
+	p {position: fixed; bottom: 0; margin: 0; padding: 2px 3px 2px 3px; outline: 1px solid var(--hl-border); display: none; overflow: hidden; white-space: nowrap; background-color: var(--hl-bg); color: var(--fg)}
+	a {color: var(--link)}
+	#legend {padding: 4px; border-radius: 4px; background: var(--legend-bg); border: 1px solid var(--legend-border); display: none}
+	#hl {position: absolute; display: none; overflow: hidden; white-space: nowrap; pointer-events: none; background-color: var(--hl-bg); outline: 1px solid var(--hl-border); height: 15px}
+	#hl span {padding: 0 3px 0 3px}
+	#status {left: 0}
+	#match {right: 0}
+	#reset {cursor: pointer}
+	#canvas {width: 100%; height: 272px}
+	#tree {display: none; clear: both; padding-top: 5px; font-size: 14px}
+	#tree ul {list-style: none; margin: 0; padding-left: 17px}
+	#tree > ul {padding-left: 0}
+	#tree li {white-space: nowrap}
+	#tree li > ul {display: none}
+	#tree li.open > ul {display: block}
+	#tree div {display: inline-block; padding: 1px 3px; cursor: pointer}
+	#tree div:hover {background-color: var(--hl-bg)}
+	#tree div > span:last-child {cursor: text}
+	#tree .o {display: inline-block; width: 14px; font-weight: bold; text-align: center}
+	#tree .o::before {content: '+'}
+	#tree li.open > div > .o::before {content: '\2212'}
+	#tree li.leaf > div {cursor: default}
+	#tree li.leaf .o::before {content: ''}
+	#tree .pct {display: inline-block; width: 4.6em; text-align: right}
+	#tree .m {background-color: #ee00ee; color: #000000 !important}
+</style>
+<script>
+{
+	let theme;
+	try { theme = localStorage.getItem('flame-theme'); } catch (ignored) {}
+	if (theme ? theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches) {
+		document.documentElement.classList.add('dark');
+	}
+}
+</script>
+</head>
+<body style='font: 12px Verdana, sans-serif'>
+<h1>CPU — every order</h1>
+<header style='float: left'>
+<button id='inverted' title='Invert (I)'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 392 392'><path d='M196,36 L316,156 L76,156 Z' fill='#004d80'/><path d='M196,356 L76,236 L316,236 Z' fill='#004d80'/><path d='M196,54 L298,156 L94,156 Z' fill='#ff8d40'/><path d='M196,338 L94,236 L298,236 Z' fill='#40b2ff'/><rect x='94' y='188' width='204' height='16' fill='#004d80'/></svg></button>
+<button id='treeview' title='Tree view (T)'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M4 6v4h1.5M8 11.75v4h1.5' stroke='#004d80' stroke-width='1.5' fill='none'/><rect x='2' y='2.5' width='12' height='3.5' rx='1' fill='#ff8d40'/><rect x='6' y='8.25' width='8' height='3.5' rx='1' fill='#40b2ff'/><rect x='10' y='14' width='8' height='3.5' rx='1' fill='#40b2ff'/></svg></button>
+<button id='search' title='Search (Ctrl+F)'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='-39.3 -39.3 471.1 471.1'><circle cx='147.7' cy='147.8' r='125.9' fill='#fff'/><path fill='#40b2ff' d='M370.7 348.7c0 1.4-1.6 6.3-7.2 12.3-6.2 6.7-12.5 9.8-14.7 9.8h-.1c-19.5-1.6-62-43.2-109.6-106.8 9.2-7.2 17.5-15.5 24.6-24.6 63.6 47.6 105.2 90.2 106.8 109.6z'/><path fill='#ff8d40' d='M208.7 86.9l-14.5 14.5c-17.1 17.1-46.5 5-46.5-19.3V61.6c-49 0-88.4 40.8-86.1 90.2 2 43.9 38.1 80 82 82 49.5 2.3 90.2-37.2 90.2-86.1 0-23.7-9.6-45.2-25.1-60.8z'/><path fill='#004d80' d='M276.1 221c12.3-21.5 19.5-46.5 19.5-73.2C295.6 66.3 229.2.1 147.7.1S0 66.3 0 147.9s66.3 147.7 147.7 147.7c26.6 0 51.5-7.1 73.2-19.5 39.8 53.3 91.9 113.5 126.1 116.4 12.3.5 22.9-6.7 32.8-16.7 5.2-5.6 13.8-16.9 12.8-28.8-2.9-34.1-63.1-86.2-116.4-126.1zM147.7 273.8c-69.5 0-125.9-56.5-125.9-125.9S78.3 21.9 147.7 21.9 273.6 78.4 273.6 147.8s-56.4 126-125.9 126zm215.9 87.2c-6.2 6.7-12.4 9.8-14.7 9.8h-.1c-19.5-1.6-62-43.2-109.6-106.8 9.2-7.2 17.5-15.5 24.6-24.6 63.6 47.6 105.2 90.2 106.8 109.6 0 1.4-1.6 6.3-7.2 12.4z'/></svg></button>
+<button id='darkmode' title='Dark mode (D)'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><path d='M10 4a6 6 0 0 1 0 12z' fill='#ff8d40'/><path d='M10 4a6 6 0 0 0 0 12z' fill='#ffffff'/><circle cx='10' cy='10' r='8' fill='none' stroke='#004d80'/></svg></button>
+<button id='info'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><circle cx='10' cy='10' r='8' stroke='#004d80' fill='none'/><path d='M10 5.5c-1.25 0-2.25 1-2.25 2.25H9a1.25 1.25 0 0 1 2.5 0c0 .65-.55 1-1 1.2-.7.35-1.25.85-1.25 1.8V11h1.5v-.25c0-.37.29-.65.68-.83.73-.34 1.32-.87 1.32-2.17 0-1.25-1.5-2.25-2.75-2.25' fill='#ff8d40' stroke='#ff8d40' stroke-width='.6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='10' cy='13.5' r='1.2' fill='#ff8d40'/></svg></button>
+</header>
+<header style='float: right'>Produced by <a href='https://github.com/async-profiler/async-profiler'>async-profiler</a></header>
+<div id='legend' style='position: absolute'>
+<dl class='frames'>
+	<dt>Frame types</dt>
+	<dd style='background-color: #e17d00'>Kernel</dd>
+	<dd style='background-color: #e15a5a'>Native</dd>
+	<dd style='background-color: #c8c83c'>C++ (VM)</dd>
+	<dd style='background-color: #50e150'>Java compiled</dd>
+	<dd style='background-color: #cce880'>Java compiled by C1</dd>
+	<dd style='background-color: #50cccc'>Inlined</dd>
+	<dd style='background-color: #b2e1b2'>Interpreted</dd>
+</dl>
+<dl class='frames'>
+	<dt>Allocation profile</dt>
+	<dd style='background-color: #50cccc'>Allocated class</dd>
+	<dd style='background-color: #e17d00'>Allocation outside TLAB</dd>
+	<dt>Lock profile</dt>
+	<dd style='background-color: #50cccc'>Lock class</dd>
+	<dt>&nbsp;</dt>
+	<dt>Search</dt>
+	<dd style='background-color: #ee00ee'>Matches regexp</dd>
+</dl>
+<dl class='hotkeys'>
+	<dt>Click frame</dt><dd>Zoom into frame</dd>
+	<dt>Ctrl/Alt+Click</dt><dd>Remove stack</dd>
+	<dt>0</dt><dd>Reset zoom</dd>
+	<dt>I</dt><dd>Invert graph</dd>
+	<dt>T</dt><dd>Toggle tree view</dd>
+	<dt>Ctrl+F</dt><dd>Search</dd>
+	<dt>N</dt><dd>Next match</dd>
+	<dt>Shift+N</dt><dd>Previous match</dd>
+	<dt>Esc</dt><dd>Cancel search</dd>
+</dl>
+</div>
+<canvas id='canvas'></canvas>
+<div id='tree'></div>
+<div id='hl'><span></span></div>
+<p id='status'></p>
+<p id='match'>Matched: <span id='matchval'></span> <span id='reset' title='Clear'>&#x274c;</span></p>
+<script>
+	// Copyright The async-profiler authors
+	// SPDX-License-Identifier: Apache-2.0
+	'use strict';
+	let root, px, pattern;
+	let level0 = 0, left0 = 0, width0 = 0, d = 0;
+	let nav = [], navIndex, matchval;
+	let inverted = true;
+	let treeview = false;
+	const U = undefined;
+	const units = 'samples';
+	const maxdiff = -1;
+	const levels = Array(17);
+	for (let h = 0; h < levels.length; h++) {
+		levels[h] = [];
+	}
+
+	const canvas = document.getElementById('canvas');
+	const c = canvas.getContext('2d');
+	const hl = document.getElementById('hl');
+	const status = document.getElementById('status');
+	const tree = document.getElementById('tree');
+
+	const canvasWidth = canvas.offsetWidth;
+	const canvasHeight = canvas.offsetHeight;
+	canvas.style.width = canvasWidth + 'px';
+	canvas.width = canvasWidth * (devicePixelRatio || 1);
+	canvas.height = canvasHeight * (devicePixelRatio || 1);
+	if (devicePixelRatio) c.scale(devicePixelRatio, devicePixelRatio);
+	c.font = document.body.style.font;
+
+	const palette = [
+		[0xb2e1b2, 20, 20, 20],
+		[0x50e150, 30, 30, 30],
+		[0x50cccc, 30, 30, 30],
+		[0xe15a5a, 30, 40, 40],
+		[0xc8c83c, 30, 30, 10],
+		[0xe17d00, 30, 30,  0],
+		[0xcce880, 20, 20, 20],
+	];
+
+	function getColor(p) {
+		const v = Math.random();
+		return '#' + (p[0] + ((p[1] * v) << 16 | (p[2] * v) << 8 | (p[3] * v))).toString(16);
+	}
+
+	function getDiffColor(diff, tree) {
+		if (diff === U) return tree ? '#bb9900' : '#ffdd33';
+		if (diff === 0) return tree ? '#a0a0a0' : '#e0e0e0';
+		const v = Math.round(128 * (maxdiff - Math.abs(diff)) / maxdiff) + (tree ? 0 : 96);
+		return diff > 0 ? 'rgb(255,' + v + ',' + v + ')' : 'rgb(' + v + ',' + v + ',255)';
+	}
+
+	function f(key, level, left, width, inln, c1, int) {
+		levels[level0 = level].push({level, left: left0 += left, width: width0 = width || width0,
+			color: maxdiff >= 0 ? getDiffColor(d) : getColor(palette[key & 7]),
+			type: maxdiff >= 0 ? d : key & 7,
+			title: cpool[key >>> 3],
+			details: (d ? (d > 0 ? ', +' : ', ') + d : '') + (int ? ', int=' + int : '') + (c1 ? ', c1=' + c1 : '') + (inln ? ', inln=' + inln : '')
+		});
+	}
+
+	function u(key, width, inln, c1, int) {
+		f(key, level0 + 1, 0, width, inln, c1, int)
+	}
+
+	function n(key, width, inln, c1, int) {
+		f(key, level0, width0, width, inln, c1, int)
+	}
+
+	function num(n) {
+		return n.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+	}
+
+	function samples(n) {
+		return n === 1 && units === 'samples' ? '1 sample' : num(n) + ' ' + units;
+	}
+
+	function pct(a, b) {
+		return a >= b ? '100' : (100 * a / b).toFixed(2);
+	}
+
+	function findFrame(frames, x) {
+		let left = 0;
+		let right = frames.length - 1;
+
+		while (left <= right) {
+			const mid = (left + right) >>> 1;
+			const f = frames[mid];
+
+			if (f.left > x) {
+				right = mid - 1;
+			} else if (f.left + f.width <= x) {
+				left = mid + 1;
+			} else {
+				return f;
+			}
+		}
+
+		if (frames[left] && (frames[left].left - x) * px < 0.5) return frames[left];
+		if (frames[right] && (x - (frames[right].left + frames[right].width)) * px < 0.5) return frames[right];
+
+		return null;
+	}
+
+	function removeStack(left, width) {
+		for (let h = 0; h < levels.length; h++) {
+			const frames = levels[h], newFrames = [];
+			for (let i = 0; i < frames.length; i++) {
+				const f = frames[i];
+				if (f.left >= left + width) {
+					f.left -= width;
+				} else if (f.left + f.width > left) {
+					if ((f.width -= width) <= 0 && h) continue;
+				}
+				newFrames.push(f);
+			}
+			levels[h] = newFrames;
+		}
+	}
+
+	function search(r) {
+		if (r === true && (r = prompt('Enter regexp to search:', '')) === null) {
+			return;
+		}
+
+		pattern = r ? RegExp(r) : undefined;
+		const matched = render(root, nav = []);
+		navIndex = -1;
+		document.getElementById('matchval').textContent = matchval = pct(matched, root.width) + '%';
+		document.getElementById('match').style.display = r ? 'inline-block' : 'none';
+
+		const rows = tree.getElementsByTagName('li');
+		for (let i = 0; i < rows.length; i++) {
+			rows[i].firstChild.lastChild.className = pattern && rows[i].f.title.match(pattern) ? 'm' : '';
+		}
+	}
+
+	function render(newRoot, nav) {
+		const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg');
+
+		if (root) {
+			c.fillStyle = bg;
+			c.fillRect(0, 0, canvasWidth, canvasHeight);
+		}
+
+		root = newRoot || levels[0][0];
+		px = canvasWidth / root.width;
+
+		const x0 = root.left;
+		const x1 = x0 + root.width;
+		const marked = [];
+
+		function mark(f) {
+			return marked[f.left] || (marked[f.left] = f);
+		}
+
+		function totalMarked() {
+			let total = 0;
+			let left = 0;
+			Object.keys(marked).sort(function(a, b) { return a - b; }).forEach(function(x) {
+				if (+x >= left) {
+					const m = marked[x];
+					if (nav) nav.push(m);
+					total += m.width;
+					left = +x + m.width;
+				}
+			});
+			return total;
+		}
+
+		function drawFrame(f, y) {
+			if (f.left < x1 && f.left + f.width > x0) {
+				c.fillStyle = pattern && f.title.match(pattern) && mark(f) ? '#ee00ee' : f.color;
+				c.fillRect((f.left - x0) * px, y, f.width * px, 15);
+
+				if (f.width * px >= 21) {
+					const chars = Math.floor(f.width * px / 7);
+					const title = f.title.length <= chars ? f.title : f.title.substring(0, chars - 2) + '..';
+					c.fillStyle = '#000000';
+					c.fillText(title, Math.max(f.left - x0, 0) * px + 3, y + 12, f.width * px - 6);
+				}
+
+				if (f.level < root.level) {
+					c.fillStyle = bg + '80';
+					c.fillRect((f.left - x0) * px, y, f.width * px, 15);
+				}
+			}
+		}
+
+		for (let h = 0; h < levels.length; h++) {
+			const y = inverted ? h * 16 : canvasHeight - (h + 1) * 16;
+			const frames = levels[h];
+			for (let i = 0; i < frames.length; i++) {
+				drawFrame(frames[i], y);
+			}
+		}
+
+		return totalMarked();
+	}
+
+	function buildTree() {
+		const ul = document.createElement('ul');
+		const li = makeTreeNode(root);
+		ul.appendChild(li);
+		expandTree(li, false);
+		tree.textContent = '';
+		tree.appendChild(ul);
+	}
+
+	function collectChildren(f, val, func) {
+		const frames = levels[f.level + 1] || [];
+		let lo = 0, hi = frames.length;
+		while (lo < hi) {
+			const mid = (lo + hi) >>> 1;
+			frames[mid].left < f.left ? lo = mid + 1 : hi = mid;
+		}
+		while (lo < frames.length && frames[lo].left < f.left + f.width) {
+			val = func(val, frames[lo++]);
+		}
+		return val;
+	}
+
+	function makeTreeNode(f) {
+		const li = document.createElement('li');
+		const row = document.createElement('div');
+
+		li.f = f;
+		const cwidth = collectChildren(f, 0, function(w, c) { return w + c.width });
+		if (cwidth === 0) li.className = 'leaf';
+
+		const o = document.createElement('span');
+		o.className = 'o';
+		row.appendChild(o);
+
+		const p = document.createElement('span');
+		p.className = 'pct';
+		p.textContent = pct(f.width, levels[0][0].width) + '%\xa0';
+		row.appendChild(p);
+
+		const span = document.createElement('span');
+		if (pattern && f.title.match(pattern)) span.className = 'm';
+		span.style.color = maxdiff >= 0 ? getDiffColor(f.type, true) : 'var(--t' + f.type + ')';
+		span.textContent = f.title;
+		row.title = samples(f.width) + f.details + (cwidth > 0 && f.width > cwidth ? ', self=' + num(f.width - cwidth) : '');
+		row.appendChild(span);
+
+		row.onmousedown = function() {
+			if (event.detail > 1 && event.target !== span) event.preventDefault();
+		}
+
+		row.onclick = function() {
+			if (event.target === span) return;
+			li.classList.contains('open') ? li.classList.remove('open') : expandTree(li, event.altKey);
+			event.preventDefault();
+		}
+
+		li.appendChild(row);
+		return li;
+	}
+
+	function expandTree(li, deep) {
+		if (li.className === 'leaf') return false;
+		if (!li.ul) {
+			const ul = li.ul = document.createElement('ul');
+			const children = collectChildren(li.f, [], function(arr, c) { arr.push(c); return arr; });
+			children.sort(function(a, b) { return b.width - a.width; });
+			for (let i = 0; i < children.length; i++) {
+				ul.appendChild(makeTreeNode(children[i]));
+			}
+			li.appendChild(ul);
+		}
+		li.classList.add('open');
+		if (deep) {
+			for (let e = li.ul.firstChild; e !== null; e = e.nextSibling) {
+				if (e.f.width * 1000 >= levels[0][0].width) expandTree(e, true);
+			}
+		} else if (li.ul.childElementCount === 1) {
+			expandTree(li.ul.firstChild, false);
+		}
+		return true;
+	}
+
+	function expandTo(f) {
+		let li = tree.firstChild.firstChild;
+		while (li !== null && li.f.level < f.level && expandTree(li, false)) {
+			for (li = li.ul.firstChild; li !== null; li = li.nextSibling) {
+				if (f.left >= li.f.left && f.left < li.f.left + li.f.width) break;
+			}
+		}
+		if (li) li.firstChild.scrollIntoView({block: 'center'});
+	}
+
+	function unpack(cpool) {
+		for (let i = 1; i < cpool.length; i++) {
+			cpool[i] = cpool[i - 1].substring(0, cpool[i].charCodeAt(0) - 32) + cpool[i].substring(1);
+		}
+	}
+
+	canvas.onmousemove = function() {
+		const h = Math.floor((inverted ? event.offsetY : (canvasHeight - event.offsetY)) / 16);
+		if (h >= 0 && h < levels.length) {
+			const f = findFrame(levels[h], event.offsetX / px + root.left);
+			if (f) {
+				if (f !== root) getSelection().removeAllRanges();
+				hl.style.left = (Math.max(f.left - root.left, 0) * px + canvas.offsetLeft) + 'px';
+				hl.style.width = (Math.min(f.width, root.width) * px) + 'px';
+				hl.style.top = ((inverted ? h * 16 : canvasHeight - (h + 1) * 16) + canvas.offsetTop) + 'px';
+				hl.firstChild.textContent = f.title;
+				hl.style.display = 'block';
+				canvas.title = f.title + '\n(' + samples(f.width) + f.details + ', ' + pct(f.width, levels[0][0].width) + '%)';
+				canvas.style.cursor = 'pointer';
+				canvas.onclick = function() {
+					if ((event.altKey || event.ctrlKey) && h >= root.level && h > 0) {
+						removeStack(f.left, f.width);
+						root.width > f.width ? render(root) : render();
+					} else if (f !== root) {
+						render(f);
+					}
+					canvas.onmousemove();
+				};
+				status.textContent = 'Function: ' + canvas.title;
+				status.style.display = 'inline-block';
+				return;
+			}
+		}
+		canvas.onmouseout();
+	}
+
+	canvas.onmouseout = function() {
+		hl.style.display = 'none';
+		status.style.display = 'none';
+		canvas.title = '';
+		canvas.style.cursor = '';
+		canvas.onclick = null;
+	}
+
+	canvas.ondblclick = function() {
+		getSelection().selectAllChildren(hl);
+	}
+
+	document.getElementById('inverted').onclick = function() {
+		inverted = !inverted;
+		render();
+	}
+
+	document.getElementById('treeview').onclick = function() {
+		treeview = !treeview;
+		if (treeview) buildTree();
+		canvas.style.display = treeview ? 'none' : '';
+		tree.style.display = treeview ? 'block' : 'none';
+	}
+
+	document.getElementById('search').onclick = function() {
+		search(true);
+	}
+
+	document.getElementById('reset').onclick = function() {
+		search(false);
+	}
+
+	document.getElementById('darkmode').onclick = function() {
+		const theme = document.documentElement.classList.toggle('dark') ? 'dark' : 'light';
+		try { localStorage.setItem('flame-theme', theme); } catch (ignored) {}
+		render(root);
+	}
+
+	const btnInfo = document.getElementById('info');
+	const legend = document.getElementById('legend');
+
+	btnInfo.onmouseover = function() {
+		legend.style.left = (btnInfo.offsetLeft + 24) + 'px';
+		legend.style.top = (btnInfo.offsetTop + 24) + 'px';
+		legend.style.display = 'block';
+	}
+
+	btnInfo.onmouseout = function() {
+		legend.style.display = 'none';
+	}
+
+	window.onkeydown = function(event) {
+		if ((event.ctrlKey || event.metaKey) && event.key === 'f') {
+			event.preventDefault();
+			search(true);
+			return false;
+		} else if (event.key === 'Escape') {
+			search(false);
+		} else if ((event.key === 'n' || event.key === 'N') && nav.length > 0) {
+			navIndex = (navIndex + (event.shiftKey ? nav.length - 1 : 1)) % nav.length;
+			if (treeview) {
+				expandTo(nav[navIndex]);
+			} else {
+				render(nav[navIndex]);
+				window.scroll(0, inverted ? root.level * 16 : canvasHeight - (root.level + 1) * 16);
+				canvas.onmousemove();
+			}
+			document.getElementById('matchval').textContent = matchval + ' (' + (navIndex + 1) + ' of ' + nav.length + ')';
+			return false;
+		} else if (event.key === 'i') {
+			canvas.onmouseout();
+			document.getElementById('inverted').onclick();
+			return false;
+		} else if (event.key === 't') {
+			canvas.onmouseout();
+			document.getElementById('treeview').onclick();
+			return false;
+		} else if (event.key === 'd') {
+			document.getElementById('darkmode').onclick();
+			return false;
+		} else if (event.key === '0') {
+			canvas.onmouseout();
+			root = levels[0][0];
+			search(false);
+			if (treeview) buildTree();
+			return false;
+		}
+	}
+
+const cpool = [
+'all',
+' /usr/lib64/libz.so.1.3.1.zlib-ng',
+' C2 Runtime complete_monitor_locking',
+'+new_array',
+' G1BarrierSet::write_region',
+',Runtime::write_ref_array_post_entry',
+' InstanceKlass::allocate_objArray',
+' JVM_SleepNanos',
+'!avaThread::sleep_nanos',
+'$_java_util_zip_Deflater_deflateBytesBytes',
+'<init',
+'%one_profiler_Recording_emitSpan',
+' LightweightSynchronizer::enter',
+'9inflate_and_enter',
+' MemAllocator::allocate',
+' ObjArrayAllocator::initialize',
+'#ectMonitor::enter',
+'4_internal',
+'5with_contention_mark',
+'!ptoRuntime::new_array_C',
+' PlatformEvent::park',
+'3_nanos',
+' SharedRuntime::complete_monitor_locking_C',
+'!pinPause',
+' ThreadInVMfromNative::ThreadInVMfromNative',
+' __GI___futex_abstimed_wait_cancelable64',
+'"internal_syscall_cancel',
+'"memset_avx512_unaligned_erms',
+'"pthread_mutex_unlock@GLIBC_2.2.5',
+'"syscall_cancel_arch',
+' checkcast_arraycopy',
+' deflate',
+'\'Reset',
+' io/github/dpsoft/ap/demo/DemoShop$$Lambda.0x000000004706b300.run',
+'BInventory.reserve',
+'BJsonCodec.parse',
+'Lrender',
+'BOrderRepository.save',
+'GService.placeOrder',
+'BPricingEngine.price',
+'PvolumeDiscount',
+'BReceiptCompressor.compress',
+'A.serve',
+' java/lang/AbstractStringBuilder.append',
+'@ensureCapacityNewCoder',
+'NSameCoder',
+'@needsNewBuffer',
+'*String.<init>',
+'1coder',
+'1encode',
+'7UTF8',
+'2quals',
+'1getBytes',
+'1hashCode',
+'1indexOf',
+'1length',
+'1replace',
+'1split',
+'2ubSequence',
+'4string',
+'1toCharArray',
+'1valueOf',
+'0Builder.append',
+'8toString',
+'0Latin1.hashCode',
+'7indexOf',
+'7newString',
+'7replace',
+'7toChars',
+'*Thread.run',
+'4With',
+'1sleep',
+'6Nanos',
+';0',
+'%math/BigDecimal.<init>',
+'5add',
+'5bigMultiplyPowerTen',
+'5divide',
+';AndRound',
+'5longMultiplyPowerTen',
+'5multiply',
+'5needIncrement',
+'5pow',
+'5setScale',
+'5valueOf',
+'-Integer.<init>',
+'5multiply',
+'=ByInt',
+'=ToLen',
+'5pow',
+'5stripLeadingZeroInts',
+'5trustedStripLeadingZeroInts',
+'*MutableBigInteger.compareHalf',
+'<divide',
+'BKnuth',
+'BMagnitude',
+'<getMagnitudeArray',
+'<primitiveLeftShift',
+'<toBigDecimal',
+'%util/AbstractCollection.toString',
+'2Map.toString',
+'+rrayList$Itr.next',
+'3.add',
+'4grow',
+'/s.copyOf',
+'7Range',
+'*HashMap$EntryIterator.<init>',
+'@next',
+'7Set.iterator',
+'2HashIterator.<init>',
+'?nextNode',
+'2Node.getKey',
+':Value',
+'1.get',
+'5Node',
+'2hash',
+'2put',
+'5Val',
+'2resize',
+'*regex/Matcher.<init>',
+'8find',
+'8reset',
+'8search',
+'0Pattern$Slice.match',
+'9tart.match',
+'7.matcher',
+'8split',
+'*zip/Deflater.<init>',
+'7deflate',
+'>BytesBytes',
+'7init',
+'!byte_arraycopy',
+'&disjoint_arraycopy',
+'!dk/internal/util/ArraysSupport.hashCodeOfUnsigned',
+'2DecimalDigits.uncheckedGetCharsLatin1',
+'!int_disjoint_arraycopy',
+'!long_disjoint_arraycopy',
+' multiplyToLen',
+' one/profiler/Recording.emitSpan',
+'-Span.end',
+' pthread_cond_timedwait@@GLIBC_2.3.2',
+' syscall'
+];
+unpack(cpool);
+
+n(3,297)
+u(552)
+u(560)
+u(264)
+u(336)
+u(305,297,0,95,0)
+u(274,3)
+u(19,2)
+u(180)
+u(100)
+u(108)
+u(132)
+u(148,1)
+u(140)
+u(164)
+u(227)
+f(187,12,1)
+f(570,7,1)
+u(578)
+u(585)
+u(59)
+u(196)
+f(281,6,1,103)
+f(449,7,4,14)
+f(442,8,1,3)
+f(386,9,1,2)
+f(537,8,2,10)
+f(457,7,10,74)
+f(457,8,1,73)
+u(442,1)
+n(458,38)
+f(27,10,8,1)
+u(156)
+u(52)
+u(116)
+u(124)
+f(434,10,1,8)
+f(522,11,5,3)
+f(442,10,3,1)
+n(474,8)
+f(530,11,1,7)
+u(378,1)
+n(842,5)
+n(1059,1)
+f(818,10,1,12)
+u(818)
+u(826)
+u(826)
+f(243,14,4,8)
+f(36,15,3,4)
+n(44,1)
+f(1009,9,1,34,0,9,0)
+u(1009)
+u(466,2)
+u(474)
+u(530)
+u(1051,1)
+n(1059)
+f(962,11,1,31)
+u(978)
+f(994,13,1,30)
+f(985,14,6,24)
+f(1002,11,24,1)
+u(954)
+u(970)
+f(818,7,1)
+u(818)
+f(929,7,1,10)
+f(922,8,1,5)
+f(425,9,3,2)
+u(514)
+f(1065,11,1,1)
+f(938,8,1,4)
+f(945,9,3,1)
+f(289,6,1,5)
+f(498,7,1,4)
+u(346)
+f(362,9,1,2)
+n(1074,1)
+f(298,6,1,2)
+u(570)
+u(578)
+u(585)
+u(59)
+u(68)
+u(172)
+f(1123,13,1,1)
+u(203)
+u(211)
+u(235)
+f(313,6,1,21)
+u(594,10)
+u(442,1)
+n(482)
+u(546)
+f(594,8,1,8)
+f(593,9,1,7)
+f(602,7,7,1)
+u(602)
+u(602)
+u(674)
+f(666,7,1,3)
+f(666,8,1,2)
+u(626)
+f(810,7,2,1)
+n(906,6)
+u(914)
+f(410,9,3,3)
+f(321,6,3,27)
+f(602,7,2,1)
+u(602)
+u(601)
+f(617,7,1,13)
+f(618,8,2,11)
+u(618)
+u(610,1)
+u(690)
+f(626,10,1,9)
+u(650,1)
+u(738)
+f(746,11,1,6)
+u(746)
+u(754)
+f(761,14,1,5)
+f(778,15,3,2)
+f(786,11,2)
+u(770)
+u(842)
+f(634,10,2,1)
+f(642,7,1)
+u(642)
+u(690)
+f(658,7,1,10)
+u(713)
+f(689,9,2,8)
+f(690,10,1,7)
+f(697,11,2,1)
+u(682)
+f(706,11,1,3)
+f(1099,12,1,2)
+f(730,11,2,1)
+u(722)
+u(842)
+u(1083)
+f(329,6,1,135,0,27,0)
+f(418,7,1,1)
+u(394)
+u(402)
+u(1091)
+f(793,7,1,93)
+u(498,91)
+u(490,88)
+u(801)
+f(498,11,1,21)
+u(346,3)
+f(353,13,2,1)
+u(834)
+f(498,12,1,18)
+u(346)
+f(354,14,1,1)
+n(370)
+n(418,9)
+f(1051,15,4,1)
+n(1059,4)
+f(442,14,4,5)
+n(1059,1)
+f(506,11,1,3)
+f(378,12,1,2)
+u(1091)
+f(858,11,2,24)
+u(858)
+u(882)
+f(866,11,24,4)
+u(850)
+u(874)
+f(890,11,4,30)
+n(898,5)
+f(498,9,5,3)
+u(346)
+u(354)
+u(834)
+f(1059,13,2,1)
+f(810,8,1,2)
+f(1018,7,2,6)
+u(1018)
+u(1041)
+u(83)
+u(11,1)
+u(11)
+u(219)
+f(259,11,1,5)
+u(219)
+f(1026,7,5,34,26,8,0)
+u(1025,34,0,11,0)
+u(1033)
+u(75)
+u(251)
+u(11)
+f(11,13,2,32)
+f(11,14,24,8)
+f(1114,6,8,1)
+u(1105)
+u(91)
+u(1131)
+
+search();
+if (treeview) { treeview = false; document.getElementById('treeview').onclick(); }
+</script></body></html>

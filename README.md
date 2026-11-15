@@ -1,165 +1,69 @@
-# AP-Agent
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.dpsoft/ap-agent)](https://search.maven.org/search?q=ap-agent)
-[![Maven CI/CD](https://github.com/dpsoft/ap-agent/actions/workflows/build.yml/badge.svg)](https://github.com/dpsoft/ap-agent/actions/workflows/build.yml)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
+<img src="docs/brand/ap-agent-lockup.svg" alt="ap-agent" width="270">
 
-Async Profiler Agent is a minimal Java agent that allows you to proxy to [Async Profiler] via a minimal REST API, making it easy to profile your applications. Simply add it to the start of the JVM and as it uses the [AP-Loader], there is no need for Async Profiler up front.
+*[async-profiler] over HTTP — one `-javaagent`, nothing to install. CPU, wall clock, allocations, locks and native
+memory as interactive flame graphs, heatmaps, JFR or Go-compatible pprof.*
 
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.dpsoft/ap-agent)](https://central.sonatype.com/artifact/io.github.dpsoft/ap-agent)
+[![CI](https://github.com/dpsoft/ap-agent/actions/workflows/build.yml/badge.svg)](https://github.com/dpsoft/ap-agent/actions/workflows/build.yml)
+[![Java 11+](https://img.shields.io/badge/Java-11%2B-blue)](docs/configuration.md#requirements)
+[![async-profiler 4.6](https://img.shields.io/badge/async--profiler-4.6-orange)](https://github.com/async-profiler/async-profiler)
+[![License](https://img.shields.io/github/license/dpsoft/ap-agent)](LICENSE)
 
-## Usage
-Download the [latest version](https://s01.oss.sonatype.org/service/local/repositories/releases/content/io/github/dpsoft/ap-agent/0.1.9/ap-agent-0.1.9.jar).
+---
 
-To use the `AP-Agent`, simply add it to the JVM startup. The agent exposes a REST API for profiling with the following endpoint: `http://localhost:8080/profiler/profile`.
+![A CPU profile requested with curl and explored in the browser](docs/assets/demo.gif)
 
-```shell
-java -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
-```
+*One `curl` against a running JVM: 30 seconds of CPU come back as an async-profiler 4.6 flame graph — zoom into a
+frame, search for a method, switch to the tree view. [Interactive version](docs/assets/flame-cpu.html).*
 
-The endpoint accepts the following parameters:
+---
 
-* `event`: The type of event to profile (e.g. `cpu`, `itimer`, `ctimer`, `wall` `nativemem`)
-* `output`: The desired output format (e.g. `flamegraph`, `heatmap`, `jfr`, `pprof`, `collapsed`)
-* `params`: Additional parameters to pass to the flame graph (e.g. `simple`, `title=My Title`, `threads`, `reverse`)
-* `duration`: The length of time to profile for (in seconds)
+## What it does
 
-### Flame Graph
-For example, to profile CPU usage for 30 seconds and output the results in Flamegraph format, the following API call would be used: `http://localhost:8080/profiler/profile?event=cpu&output=flame&duration=30`
+- **Every async-profiler event over HTTP**: `cpu`, `wall`, `alloc`, `lock` and `nativemem` (in bytes with
+  `params=total`), one request per profile. [Parameters and recipes →](docs/usage.md)
+- **Ready-to-share outputs**: interactive flame graph and tree view, heatmap, JFR for JDK Mission Control,
+  collapsed stacks and pprof.
+- **Go pprof compatible**: `go tool pprof http://host:8080/debug/pprof/profile` just works. [Go mode →](docs/go-mode.md)
+- **Span filtering**: tag your own units of work and keep only their samples, by tag regex or latency.
+  [How spans work →](docs/span-filtering.md)
+- **Nothing to install**: [AP-Loader] bundles the native profiler for Linux x64/arm64 and macOS; a profiler that
+  cannot load is logged and never stops your application.
+- **Self-contained**: a 1.8 MB shaded jar whose dependencies cannot clash with yours, also usable as a
+  library. [Library usage →](docs/library-usage.md)
 
-![image](https://user-images.githubusercontent.com/2567525/214323977-af9a4c92-8cbc-48dd-a0c6-f1f7a37122ee.png)
-
-### Flame Graph from Collapsed Stack Traces
-The collapsed stack trace format is a collection of call stacks, where each line represents a semicolon-separated list of frames followed by a counter. The frames represent the function calls in the stack and the counter indicates how many times that particular stack has been executed.
-
-The format is as follows:
-```shell
-main;run;doSomething;processData;readFile;open;readBytes:5
-main;run;doSomething;processData;readFile;open;readBytes:3
-main;run;doSomething;processData;readFile;open;readBytes:2
-main;run;doSomething;processData;readFile;close:1
-main;run;doSomething;processData;writeFile;open;writeBytes:4
-main;run;doSomething;processData;writeFile;close:1
-```
-
-To generate a flame graph from the collapsed stack trace format, and share it easily using [flamegraph.com], you can use the following command:
-
-```shell
-curl http://localhost:8080/profiler/profile?event=cpu&output=collapsed&duration=30 | curl --data-binary @- https://flamegraph.com | jq -r '."url"' 
-...
-...
-https://flamegraph.com/share/4672162e-a978-11ed-aa32-fa99570776b6
-```
-Finally, you can open the URL in your browser to view the flame graph.
-
-![image](https://user-images.githubusercontent.com/2567525/218182805-34568aa7-71ae-420e-9385-1b788918956b.png)
-
-## Continuous Profiling a la Bash
-We can create a simple bash script to continuously profile our application and output the results to a file. 
+## Quickstart
 
 ```bash
-#!/bin/bash
+curl -LO https://repo1.maven.org/maven2/io/github/dpsoft/ap-agent/0.2.0/ap-agent-0.2.0.jar
+java -javaagent:ap-agent-0.2.0.jar -jar my-app.jar
 
-event=${1:-itimer}
-profiling_duration=${2:-30}
-results_folder=${3:-profiling_results}
+# 30 seconds of CPU as a flame graph, or wall clock / allocations / locks / native memory
+curl -o cpu.html "http://localhost:8080/profiler/profile?event=cpu&output=flame&duration=30"
 
-mkdir -p $results_folder
-
-while true; do
-    timestamp=$(date +%Y-%m-%d_%H-%M-%S)
-    output_file="${event}_profile_$timestamp.html"
-    start_time=$(date +%s)
-    curl -s "http://localhost:8080/profiler/profile?event=$event&output=flame&duration=$profiling_duration" -o "$results_folder/$output_file"
-    end_time=$(date +%s)
-    duration=$((end_time - start_time))
-    echo "Profile saved to $results_folder/$output_file at $(date) took $duration seconds."
-done
-```
-Running the script with the `cpu` event and `60 second` duration, we can see the results in the `profiling_results` folder.
-
-```shell
-./loop.sh cpu 60 profiling_results
-
-Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:17:24 took 60 seconds.
-Profile saved to profiling_results/cpu_profile_2023-01-24_16-16-24.html at 04:18:24 took 60 seconds.
+# or straight into pprof
+go tool pprof -http :8000 "http://localhost:8080/profiler/profile?event=cpu&output=pprof&duration=30"
 ```
 
-## Go Mode
-The agent also supports a `GO`(lang) mode, which exposes the `/debug/pprof/profile` endpoint. This is where we can use the go [pprof] tools.
+The endpoint has no authentication and listens on all interfaces: bind it with `-Dap-agent.server.host=127.0.0.1`
+or keep the port private. [Configuration →](docs/configuration.md)
 
-```shell
-java -Dap-agent.handler.go-mode=true -javaagent:/path/to/ap-agent.jar -jar /path/to/my-awesome-app.jar
+## Documentation
 
-go tool pprof -http :8000 http://localhost:8080/debug/pprof/profile?seconds=30  
-```
+| | |
+|---|---|
+| [Usage](docs/usage.md) | parameters, outputs, errors and recipes per event |
+| [Span filtering](docs/span-filtering.md) | profiles of your own units of work |
+| [Go mode](docs/go-mode.md) | the `/debug/pprof/*` endpoints |
+| [Configuration](docs/configuration.md) | settings, Docker and Kubernetes, requirements |
+| [Library usage](docs/library-usage.md) | serving profiles from your own HTTP endpoints |
+| [Upgrading from 0.1.x](docs/upgrading.md) | behaviour and API changes |
+| [Contributing](CONTRIBUTING.md) | building, the test suites and the benchmarks |
 
-![image](https://user-images.githubusercontent.com/2567525/214324772-91ac9a97-13b3-4ed1-90a8-175882e79a5b.png)    
+---
 
-![image](https://user-images.githubusercontent.com/2567525/214325045-0907e055-8f17-45cf-9f57-c2b52c366854.png)
+[Contributing](CONTRIBUTING.md) · [License](LICENSE) (Apache-2.0) ·
+built on [async-profiler] and [AP-Loader]
 
-
-### Additional Endpoints
-In addition, the `AP-Agent` also supports two additional endpoints:
-
-* `/debug/pprof/block`: Returns a profiling report of contended locks that are blocking on synchronization primitives. This endpoint can help identify where resources are being locked and where contention is occurring.
-* `/debug/pprof/allocs`: Returns a profiling report of memory allocations performed by the application. This endpoint can help identify where memory is being allocated and what kind of objects are consuming the most memory.
-
-### Example using [pprof.me] 
-One way to analyze the profiling results generated by the **AP-Agent** is to use pprof.me. It is a free online tool that allows you to upload profiling data and visualize it, without having to install any additional tools.
-
- ```shell
-curl -s http://localhost:8080/debug/pprof/allocs > allocs.pb.gz
-pprofme upload -d "java allocs" allocs.pb.gz
-firefox | chrome https://pprof.me/a25a2a9
-
-```
-
-![image](https://user-images.githubusercontent.com/2567525/235777910-3f2c25e6-e66d-4d00-b3a7-eab950562368.png)
-
-### Can I use the ap-agent as a library?
-
-Yes, you can use the ap-agent as library, just add the following dependency to your project:
-
-```xml
-<dependency>
-    <groupId>io.github.dpsoft</groupId>
-    <artifactId>ap-agent</artifactId>
-    <version>0.1.10</version>
-</dependency>
-```
-
-and then, you can use the API as follows(spring-boot controller example):
-
-```java
-@RestController
-public class PPROFController {
-    private final static Logger log = LoggerFactory.getLogger(PPROFController.class);
-
-    private final AsyncProfiler asyncProfiler = AsyncProfilerLoader.loadOrNull();
-
-    @GetMapping(value = {"/debug/pprof/profile", "/debug/pprof/block", "/debug/pprof/allocs"})
-    @ResponseBody
-    public void profile(@RequestParam Map<String,String> queryParams, HttpServletRequest request, HttpServletResponse response)  {
-        final var operation = Functions.lastSegment(request.getServletPath());
-        final var command = Command.from(operation, queryParams);
-
-        ProfilerExecutor
-                .with(asyncProfiler, command)
-                .run()
-                .onSuccess(result -> result.pipeTo(response::getOutputStream))
-                .onFailure(cause -> log.error("It has not been possible to execute the profiler command.", cause))
-                .andFinallyTry(response::flushBuffer);
-    }
-}
-```
-
-
-## License
-This code base is available under the Apache License, version 2.
-
+[async-profiler]: https://github.com/async-profiler/async-profiler
 [AP-Loader]: https://github.com/jvm-profiling-tools/ap-loader
-[Async Profiler]: https://github.com/jvm-profiling-tools/async-profiler
-[pprof]: https://go.dev/blog/pprof
-[flamegraph.com]:https://flamegraph.com/
-[pprof.me]: https://pprof.me/
-[experimental]:  https://s01.oss.sonatype.org/content/repositories/releases/io/github/dpsoft/ap-agent-experimental/0.1.3/ap-agent-experimental-0.1.3.jar
-

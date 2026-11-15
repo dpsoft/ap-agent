@@ -1,6 +1,7 @@
 package io.github.dpsoft.ap.handler;
 
 import com.sun.net.httpserver.HttpServer;
+import io.github.dpsoft.ap.ProfilerService;
 import io.github.dpsoft.ap.command.Command;
 import io.github.dpsoft.ap.config.AgentConfiguration;
 import io.github.dpsoft.ap.testing.FixtureApp;
@@ -34,10 +35,10 @@ class AsyncProfilerHandlerTest {
     @BeforeAll
     static void startServer() throws Exception {
         assumeTrue(AsyncProfilerLoader.isSupported(), "Async Profiler is not supported on this platform");
-        final var profiler = AsyncProfilerLoader.load(); // load first so the workload spans are recorded from the start
+        final var profiler = ProfilerService.create(); // load first so the workload spans are recorded from the start
         workload = FixtureApp.start();
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        server.createContext("/", new AsyncProfilerHandler(profiler, AgentConfiguration.instance()));
+        server.createContext("/", profiler.httpHandler());
         server.start();
     }
 
