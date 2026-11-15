@@ -86,6 +86,19 @@
         </resources>
         <plugins>
             <plugin>
+                <!-- exposes ${groupId:artifactId:type} paths of dependencies, used by the smoke tests -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.11.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
@@ -101,6 +114,7 @@
                 <configuration>
                     <argLine>@{argLine} -XX:+IgnoreUnrecognizedVMOptions --enable-native-access=ALL-UNNAMED</argLine>
                     <systemPropertyVariables>
+                        <ap-agent.it.async-profiler-api>${me.bechberger:ap-loader-all:jar}</ap-agent.it.async-profiler-api>
                         <ap-agent.it.jar>${project.build.directory}/${project.build.finalName}.jar</ap-agent.it.jar>
                         <ap-agent.it.test-classes>${project.build.testOutputDirectory}</ap-agent.it.test-classes>
                     </systemPropertyVariables>

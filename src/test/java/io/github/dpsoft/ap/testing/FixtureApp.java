@@ -1,5 +1,7 @@
 package io.github.dpsoft.ap.testing;
 
+import one.profiler.Span;
+
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,6 +25,7 @@ public final class FixtureApp {
         final var threads = new ArrayList<Thread>();
         threads.add(daemon(FixtureApp::loop, "fixture-workload"));
         for (int i = 0; i < 2; i++) threads.add(daemon(FixtureApp::contend, "fixture-contention-" + i));
+        threads.add(daemon(FixtureApp::spans, "fixture-spans"));
         return new Workload(threads);
     }
 
@@ -54,6 +57,25 @@ public final class FixtureApp {
         thread.setDaemon(true);
         thread.start();
         return thread;
+    }
+
+    /** Tags emitted by {@link #spans()}; they contain commas on purpose (see the tag query parameter). */
+    public static final String ORDERS_TAG = "fixture:kind=orders,id=1";
+    public static final String USERS_TAG = "fixture:kind=users,id=2";
+
+    /**
+     * Burns CPU inside alternating spans (async-profiler Span API). Spans are only recorded while the profiler
+     * library is loaded and a JFR recording is running; otherwise the calls are cheap no-ops.
+     */
+    private static void spans() {
+        long n = 0;
+        while (!Thread.currentThread().isInterrupted()) {
+            final long start = Span.start();
+            long acc = 0;
+            for (int i = 0; i < 300_000; i++) acc += (long) Math.sqrt(i + n);
+            sink += acc;
+            Span.end(start, (n++ & 1) == 0 ? ORDERS_TAG : USERS_TAG);
+        }
     }
 
     private static void contend() {

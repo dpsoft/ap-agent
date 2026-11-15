@@ -8,13 +8,18 @@ import java.util.Map;
 
 public final class Functions {
     /**
-     * Splits a query string apart into its component name/value pairs
+     * Splits a query string apart into its component name/value pairs.
+     * <p>
+     * Pairs are split on the raw (still encoded) query and each part is percent-decoded exactly once, so encoded
+     * {@code &}, {@code =} or {@code %} inside a value survive. Standard form decoding applies: {@code +} is a space,
+     * so a literal {@code +} (e.g. in a span tag regex) must be sent as {@code %2B}, as {@code URLEncoder} and
+     * {@code curl --data-urlencode} do.
      *
      * @return a map of query parameters
      */
     public static Map<String, String> splitQueryParams(URI uri) {
         final var queryPairs = new HashMap<String, String>();
-        final var query = uri.getQuery();
+        final var query = uri.getRawQuery();
         if (query == null) { return queryPairs; }
         final var pairs = query.split("&");
 
@@ -22,9 +27,13 @@ public final class Functions {
             final int idx = pair.indexOf("=");
             final var key = pair.substring(0, idx);
             final var value = pair.substring(idx + 1);
-            queryPairs.put(URLDecoder.decode(key, StandardCharsets.UTF_8), URLDecoder.decode(value, StandardCharsets.UTF_8));
+            queryPairs.put(decode(key), decode(value));
         }
         return queryPairs;
+    }
+
+    private static String decode(String component) {
+        return URLDecoder.decode(component, StandardCharsets.UTF_8);
     }
 
     public static String padString(String str, int length) {

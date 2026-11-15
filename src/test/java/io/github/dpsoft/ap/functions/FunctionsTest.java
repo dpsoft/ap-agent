@@ -23,9 +23,33 @@ class FunctionsTest {
 
     @Test
     void splitQueryParamsDecodesKeysAndValues() {
-        final var params = Functions.splitQueryParams(URI.create("http://h/p?params=include%3Dcom.foo.*%2Creverse&a%20b=c+d"));
+        final var params = Functions.splitQueryParams(URI.create("http://h/p?params=include%3Dcom.foo.*%2Creverse&a%20b=c%20d"));
         assertEquals("include=com.foo.*,reverse", params.get("params"));
         assertEquals("c d", params.get("a b"));
+    }
+
+    @Test
+    void splitQueryParamsDecodesExactlyOnce() {
+        final var params = Functions.splitQueryParams(URI.create("http://h/p?tag=fixture%3A.%2B&t2=orders%26users&t3=100%25done&t4=a%3Db"));
+        assertEquals("fixture:.+", params.get("tag"));
+        assertEquals("orders&users", params.get("t2"));
+        assertEquals("100%done", params.get("t3"));
+        assertEquals("a=b", params.get("t4"));
+        assertEquals(4, params.size());
+    }
+
+    @Test
+    void splitQueryParamsDecodesPlusAsSpace() {
+        assertEquals("c d", Functions.splitQueryParams(URI.create("http://h/p?a=c+d")).get("a"));
+        assertEquals("My Title", Functions.splitQueryParams(URI.create("http://h/p?params=title%3DMy+Title")).get("params").substring(6));
+    }
+
+    @Test
+    void splitQueryParamsRoundTripsUrlEncoder() {
+        for (var value : new String[]{"GET .+", "fixture:kind=orders,.*", "a&b=c%d", "My Title"}) {
+            final var encoded = java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
+            assertEquals(value, Functions.splitQueryParams(URI.create("http://h/p?tag=" + encoded)).get("tag"), encoded);
+        }
     }
 
     @Test

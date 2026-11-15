@@ -2,6 +2,7 @@ package io.github.dpsoft.ap.it;
 
 import io.github.dpsoft.ap.testing.FixtureApp;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.ServerSocket;
 import java.net.URI;
@@ -48,7 +49,8 @@ final class AgentProcess implements AutoCloseable {
         command.add("-Dap-agent.server.port=" + port);
         for (var property : systemProperties) command.add("-D" + property);
         command.add("-cp");
-        command.add(testClasses.toString());
+        // the application brings the async-profiler API (one.profiler.Span) itself, as documented for span filters
+        command.add(testClasses + File.pathSeparator + requiredPath("ap-agent.it.async-profiler-api"));
         command.add(FixtureApp.class.getName());
 
         final var log = Files.createTempFile("ap-agent-it", ".log");
