@@ -79,27 +79,48 @@ class CompatibilityIT {
     @BeforeAll
     static void downloadBaseline() throws Exception {
         REPORT.clear();
-        final var base = "https://repo1.maven.org/maven2/io/github/dpsoft/ap-agent/" + BASELINE + "/ap-agent-" + BASELINE + ".jar";
+        final var path = "io/github/dpsoft/ap-agent/" + BASELINE + "/ap-agent-" + BASELINE + ".jar";
         final var dir = Paths.get(System.getProperty("ap-agent.it.baseline-dir"));
         Files.createDirectories(dir);
         baselineJar = dir.resolve("ap-agent-" + BASELINE + ".jar");
-        final var client = java.net.http.HttpClient.newBuilder()
-                .connectTimeout(java.time.Duration.ofSeconds(20))
-                .followRedirects(java.net.http.HttpClient.Redirect.NORMAL).build();
-        final var checksum = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + ".sha1"))
-                .timeout(java.time.Duration.ofSeconds(30)).build(), HttpResponse.BodyHandlers.ofString());
-        assertEquals(200, checksum.statusCode(), "download of " + base + ".sha1");
+        final var checksum = fetch(path + ".sha1", HttpResponse.BodyHandlers.ofString());
         final var expectedSha1 = checksum.body().trim().split("\\s+")[0];
         assertTrue(expectedSha1.matches("[0-9a-f]{40}"), "unexpected checksum file: " + checksum.body());
         if (!Files.exists(baselineJar) || !sha1(baselineJar).equals(expectedSha1)) {
-            final var download = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base))
-                    .timeout(java.time.Duration.ofMinutes(2)).build(),
-                    // ofFile(path) alone does not truncate an existing (e.g. partial) download
-                    HttpResponse.BodyHandlers.ofFile(baselineJar, java.nio.file.StandardOpenOption.CREATE,
-                            java.nio.file.StandardOpenOption.WRITE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING));
-            assertEquals(200, download.statusCode(), "download of " + base);
+            // ofFile(path) alone does not truncate an existing (e.g. partial) download
+            fetch(path, HttpResponse.BodyHandlers.ofFile(baselineJar, java.nio.file.StandardOpenOption.CREATE,
+                    java.nio.file.StandardOpenOption.WRITE, java.nio.file.StandardOpenOption.TRUNCATE_EXISTING));
         }
         assertEquals(expectedSha1, sha1(baselineJar), "the baseline jar must be the one published on Maven Central");
+    }
+
+    private static final List<String> CENTRAL = List.of("https://repo1.maven.org/maven2/", "https://repo.maven.apache.org/maven2/");
+
+    /**
+     * GETs a Maven Central path, retrying with backoff (honouring Retry-After) on rate limiting (429), server errors and
+     * I/O errors, and falling back to the second Central host: parallel CI jobs regularly get a 429.
+     */
+    private static <T> HttpResponse<T> fetch(String path, HttpResponse.BodyHandler<T> body) throws Exception {
+        final var client = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(java.time.Duration.ofSeconds(20))
+                .followRedirects(java.net.http.HttpClient.Redirect.NORMAL).build();
+        String last = "no attempt";
+        for (int attempt = 0; attempt < 6; attempt++) {
+            final var url = CENTRAL.get(attempt % CENTRAL.size()) + path;
+            try {
+                final var response = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(url))
+                        .timeout(java.time.Duration.ofMinutes(2)).build(), body);
+                if (response.statusCode() == 200) return response;
+                last = url + " -> HTTP " + response.statusCode();
+                if (response.statusCode() != 429 && response.statusCode() < 500) break;
+                final long retryAfter = response.headers().firstValueAsLong("Retry-After").orElse(0);
+                Thread.sleep(Math.max(retryAfter * 1000, 2_000L << attempt));
+            } catch (java.io.IOException e) {
+                last = url + " -> " + e;
+                Thread.sleep(2_000L << attempt);
+            }
+        }
+        throw new AssertionError("cannot download " + path + " from Maven Central: " + last);
     }
 
     private static String sha1(java.nio.file.Path file) throws Exception {
