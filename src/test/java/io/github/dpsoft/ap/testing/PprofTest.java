@@ -68,11 +68,16 @@ class PprofTest {
 
     @Test
     void skipsUnknownLengthDelimitedFieldsCompletely() {
+        // unknown length-delimited field (2-byte length prefix) inside ValueType, which goes through Reader.skip
+        final var valueType = new ByteArrayOutputStream();
+        bytesField(valueType, 9, new byte[300]);
+        valueType.writeBytes(valueType(1, 2));
         final var out = new ByteArrayOutputStream();
-        bytesField(out, 9, new byte[300]); // unknown field with a 2-byte length prefix
-        final var rest = profile().toByteArray();
-        out.writeBytes(rest);
-        assertEquals(1, Pprof.parse(out.toByteArray()).samples);
+        bytesField(out, 1, valueType.toByteArray());
+        for (var s : new String[]{"", "cpu", "count"}) bytesField(out, 6, s.getBytes(StandardCharsets.UTF_8));
+        final var pprof = Pprof.parse(out.toByteArray());
+        assertEquals(List.of("cpu"), pprof.sampleTypes);
+        assertEquals(List.of("count"), pprof.sampleUnits);
     }
 
     @Test
