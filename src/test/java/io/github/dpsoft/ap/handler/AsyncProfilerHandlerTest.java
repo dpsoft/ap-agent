@@ -252,7 +252,8 @@ class AsyncProfilerHandlerTest {
 
     @Test
     void invalidParametersReturn400() throws Exception {
-        for (var query : new String[]{"duration=abc", "duration=0", "duration=9223372036854776", "latency=slow"}) {
+        for (var query : new String[]{"duration=abc", "duration=0", "duration=9223372036854776", "latency=slow",
+                "event=alloc&interval=abc", "event=lock&interval=-1", "event=nativemem&interval=abc"}) {
             final var response = get("/profiler/profile?" + query);
             assertEquals(400, response.statusCode(), query);
             assertTrue(text(response.body()).startsWith("Invalid parameter"), query + ": " + text(response.body()));
