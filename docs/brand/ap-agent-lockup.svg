@@ -1,29 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 248 64" width="248" height="64"
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 270 64" width="270" height="64"
      role="img" aria-label="ap-agent">
   <title>ap-agent</title>
   <style>
-    .wm   { font: 650 30px ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-            letter-spacing: -.5px; fill: #1e1d23; }
-    .wm-2 { font-weight: 500; fill: #8b8597; }
+    .wm   { font: 600 30px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+            letter-spacing: -1px; fill: #e15a5a; }
+    .wm-2 { font-weight: 400; fill: #4a4752; }
     @media (prefers-color-scheme: dark) {
-      .wm   { fill: #eceaf2; }
-      .wm-2 { fill: #a29caf; }
+      .wm-2 { fill: #d4d1dc; }
     }
   </style>
-  <!-- A flame built from profile bars, as in the perf-agent mark, coloured with the
-       frame types of async-profiler flame graphs, bottom-up the way a JVM stack
-       reads: native (red) -> C++ / JVM (yellow) -> kernel (orange) -> Java (green)
-       -> inlined Java (cyan). -->
+  <!-- An icicle: async-profiler flame graph turned upside down (root on top, the way the docs show them),
+       frames hanging in steps from the left. Colours are async-profiler frame types: the root, Java (green),
+       C++ / JVM (yellow), kernel (orange), inlined (cyan). -->
   <g>
-    <rect x="4"  y="52" width="56" height="8" rx="2.5" fill="#e15a5a"/>
-    <rect x="10" y="42" width="18" height="8" rx="2.5" fill="#e15a5a" opacity=".72"/>
-    <rect x="31" y="42" width="25" height="8" rx="2.5" fill="#c8c83c"/>
-    <rect x="18" y="32" width="12" height="8" rx="2.5" fill="#e17d00" opacity=".78"/>
-    <rect x="33" y="32" width="20" height="8" rx="2.5" fill="#50e150"/>
-    <rect x="26" y="22" width="8"  height="8" rx="2.5" fill="#50e150" opacity=".72"/>
-    <rect x="36" y="22" width="15" height="8" rx="2.5" fill="#50e150"/>
-    <rect x="34" y="12" width="14" height="8" rx="2.5" fill="#3fbfbf"/>
-    <rect x="38" y="4"  width="8"  height="6" rx="2"   fill="#7fd9d9"/>
+    <rect x="4"  y="6"  width="56" height="9" rx="2.5" fill="#e15a5a"/>
+    <rect x="4"  y="17" width="33" height="9" rx="2.5" fill="#50e150"/>
+    <rect x="39" y="17" width="21" height="9" rx="2.5" fill="#c8c83c"/>
+    <rect x="4"  y="28" width="20" height="9" rx="2.5" fill="#50e150" opacity=".75"/>
+    <rect x="26" y="28" width="11" height="9" rx="2.5" fill="#3fbfbf"/>
+    <rect x="39" y="28" width="12" height="9" rx="2.5" fill="#e17d00"/>
+    <rect x="4"  y="39" width="12" height="9" rx="2.5" fill="#3fbfbf"/>
+    <rect x="18" y="39" width="6"  height="9" rx="2.5" fill="#50e150" opacity=".55"/>
+    <rect x="4"  y="50" width="6"  height="9" rx="2.5" fill="#7fd9d9"/>
   </g>
-  <text class="wm" x="80" y="42">ap<tspan class="wm-2">-agent</tspan></text>
+  <text class="wm" x="76" y="43">ap<tspan class="wm-2">-agent</tspan></text>
 </svg>

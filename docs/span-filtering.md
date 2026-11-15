@@ -45,7 +45,10 @@ curl -o slow.html "http://localhost:8080/profiler/profile?event=wall&output=flam
 
 *The same service, two requests. Across all orders the time goes to JSON parsing and receipt compression, and the
 volume discounts of customer 3 — a bulk importer placing one order in twenty — are a thin slice; filtered by its tag,
-`PricingEngine.volumeDiscount` is most of each of those orders. [Interactive version](assets/flame-span-filter.html).*
+`PricingEngine.volumeDiscount` is most of each of those orders. Open them live: [every order](https://htmlpreview.github.io/?https://github.com/dpsoft/ap-agent/blob/main/docs/assets/flame-cpu.html),
+[customer 3](https://htmlpreview.github.io/?https://github.com/dpsoft/ap-agent/blob/main/docs/assets/flame-span-filter.html).*
+
+![Searching volumeDiscount across every order, then in customer 3's orders](assets/span-filter.gif)
 
 > Do not add `me.bechberger:ap-loader-*` to your application: the agent already bundles AP-Loader, and a second
 > copy of it on the classpath disables the agent (it logs the error and your application keeps running).

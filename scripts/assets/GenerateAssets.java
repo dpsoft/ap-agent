@@ -48,7 +48,7 @@ public class GenerateAssets {
             flame(base + flame + ",total&event=nativemem", out.resolve("flame-nativemem.html"), "Native memory (malloc), in bytes");
             flame(base + flame + "&event=cpu&tag=order%3Acustomer%3D3", out.resolve("flame-span-filter.html"),
                     "CPU — only the orders of customer 3 (tag=order:customer=3)");
-            save(base.replace("duration=10", "duration=30") + "heatmap&event=cpu", out.resolve("heatmap.html"));
+            save(base.replace("duration=10", "duration=60") + "heatmap&event=cpu", out.resolve("heatmap.html"));
             final var pprof = Files.createTempFile("demo-shop", ".pb.gz");
             save(base + "pprof&event=cpu", pprof);
 
@@ -59,6 +59,8 @@ public class GenerateAssets {
                 }
                 pprofScreenshot(browser, pprof, out.resolve("pprof-web.png"));
                 demo(browser, out);
+                spanFilterDemo(browser, out);
+                heatmapDemo(browser, out);
                 browser.close();
             }
         } finally {
@@ -125,17 +127,15 @@ public class GenerateAssets {
         }
     }
 
-    /**
-     * The README demo: the pointer sweeps the CPU flame graph, zooms into the request path, searches "placeOrder" and
-     * opens the tree view. Frames are captured as screenshots and assembled by ffmpeg (no Playwright video codecs).
-     */
-    static void demo(Browser browser, Path out) throws Exception {
+    /** Records an interaction as screenshots ("hold" captures the current page n times at 10 fps) and makes a GIF. */
+    interface Scene {
+        void play(Page page, java.util.function.IntConsumer hold) throws Exception;
+    }
+
+    static void record(Browser browser, int height, Path gif, Scene scene) throws Exception {
         final var frames = Files.createTempDirectory("ap-agent-frames");
         final int[] count = {0};
-        try (var page = browser.newPage(new Browser.NewPageOptions().setViewportSize(WIDTH, FLAME_HEIGHT))) {
-            page.onDialog(dialog -> dialog.accept("placeOrder"));
-            page.navigate(out.resolve("flame-cpu.html").toUri().toString());
-            page.waitForTimeout(800);
+        try (var page = browser.newPage(new Browser.NewPageOptions().setViewportSize(WIDTH, height))) {
             final java.util.function.IntConsumer hold = n -> {
                 final var png = page.screenshot();
                 try {
@@ -144,26 +144,75 @@ public class GenerateAssets {
                     throw new java.io.UncheckedIOException(e);
                 }
             };
+            scene.play(page, hold);
+        }
+        ffmpeg(frames, gif);
+    }
+
+    /** The README demo: sweep the CPU flame graph, zoom into the request path, search "placeOrder", tree view. */
+    static void demo(Browser browser, Path out) throws Exception {
+        record(browser, FLAME_HEIGHT, out.resolve("demo.gif"), (page, hold) -> {
+            page.onDialog(dialog -> dialog.accept("placeOrder"));
+            page.navigate(out.resolve("flame-cpu.html").toUri().toString());
+            page.waitForTimeout(800);
             final var box = page.locator("#canvas").boundingBox();
             final double row = 16; // async-profiler draws 16px rows; inverted: root at the top
             hold.accept(12);
-            for (int i = 0; i <= 14; i++) { // sweep along the request path
+            for (int i = 0; i <= 14; i++) {
                 page.mouse().move(box.x + box.width * (0.15 + i * 0.05), box.y + row * (5 + i % 4) + 8);
                 hold.accept(2);
             }
-            page.mouse().click(box.x + box.width * 0.30, box.y + row * 6 + 8); // zoom into a frame under placeOrder
+            page.mouse().click(box.x + box.width * 0.30, box.y + row * 6 + 8);
             page.waitForTimeout(300);
             hold.accept(14);
-            page.keyboard().press("Escape"); // back to the whole graph
+            page.keyboard().press("Escape");
             page.waitForTimeout(200);
-            page.keyboard().press("Control+f"); // search: the prompt is answered with "placeOrder"
+            page.keyboard().press("Control+f");
             page.waitForTimeout(400);
             hold.accept(16);
-            page.keyboard().press("t"); // tree view
+            page.keyboard().press("t");
             page.waitForTimeout(400);
             hold.accept(18);
-        }
-        ffmpeg(frames, out.resolve("demo.gif"));
+        });
+    }
+
+    /** Span filtering: every order, then only customer 3's orders, where volumeDiscount stands out. */
+    static void spanFilterDemo(Browser browser, Path out) throws Exception {
+        record(browser, FLAME_HEIGHT, out.resolve("span-filter.gif"), (page, hold) -> {
+            page.onDialog(dialog -> dialog.accept("volumeDiscount"));
+            page.navigate(out.resolve("flame-cpu.html").toUri().toString());
+            page.waitForTimeout(800);
+            page.keyboard().press("Control+f"); // barely visible across every order
+            page.waitForTimeout(400);
+            hold.accept(25);
+            page.navigate(out.resolve("flame-span-filter.html").toUri().toString());
+            page.waitForTimeout(800);
+            hold.accept(12);
+            page.keyboard().press("Control+f"); // most of the bulk importer's orders
+            page.waitForTimeout(400);
+            hold.accept(30);
+        });
+    }
+
+    /** Heatmap: select a time range by dragging, and the flame graph below shows only that range. */
+    static void heatmapDemo(Browser browser, Path out) throws Exception {
+        record(browser, HEIGHT, out.resolve("heatmap.gif"), (page, hold) -> {
+            page.navigate(out.resolve("heatmap.html").toUri().toString());
+            page.waitForTimeout(1_000);
+            final var box = page.locator("#heatmap-canvas").boundingBox();
+            hold.accept(12);
+            // the recorded seconds only fill the left part of the canvas: drag inside them
+            final double y = box.y + box.height * 0.5;
+            page.mouse().move(box.x + box.width * 0.14, y - box.height * 0.3);
+            page.mouse().down();
+            for (int i = 1; i <= 10; i++) {
+                page.mouse().move(box.x + box.width * (0.14 + i * 0.012), y + box.height * 0.3);
+                hold.accept(2);
+            }
+            page.mouse().up();
+            page.waitForTimeout(500);
+            hold.accept(30);
+        });
     }
 
     static void ffmpeg(Path frames, Path gif) throws Exception {

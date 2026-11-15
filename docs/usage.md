@@ -38,11 +38,19 @@ Remember to URL-encode values: `curl -G --data-urlencode 'tag=GET /orders.*' ...
 | CPU over time | `/profiler/profile?event=cpu&output=heatmap&duration=60` |
 | Recording for JDK Mission Control | `/profiler/profile?event=cpu&output=jfr&duration=60` |
 
+![Zoom, search and tree view in an async-profiler flame graph](assets/demo.gif)
+
+Every image below links to the live HTML, which you can explore in the browser.
+
 | Wall clock | Allocations |
 |---|---|
-| ![Wall clock flame graph](assets/flame-wall.png) | ![Allocation flame graph](assets/flame-alloc.png) |
+| [![Wall clock flame graph](assets/flame-wall.png)](https://htmlpreview.github.io/?https://github.com/dpsoft/ap-agent/blob/main/docs/assets/flame-wall.html) | [![Allocation flame graph](assets/flame-alloc.png)](https://htmlpreview.github.io/?https://github.com/dpsoft/ap-agent/blob/main/docs/assets/flame-alloc.html) |
 | **Native memory (bytes)** | **Heatmap** |
-| ![Native memory flame graph](assets/flame-nativemem.png) | ![Heatmap](assets/heatmap.png) |
+| [![Native memory flame graph](assets/flame-nativemem.png)](https://htmlpreview.github.io/?https://github.com/dpsoft/ap-agent/blob/main/docs/assets/flame-nativemem.html) | [![Heatmap](assets/heatmap.png)](https://htmlpreview.github.io/?https://github.com/dpsoft/ap-agent/blob/main/docs/assets/heatmap.html) |
+
+In a heatmap, drag over a time range to see the flame graph of just that range:
+
+![Selecting a time range in an async-profiler heatmap](assets/heatmap.gif)
 
 A JFR recording is a gzip file: `curl --compressed` or `gunzip` gives you the plain `.jfr`.
 
