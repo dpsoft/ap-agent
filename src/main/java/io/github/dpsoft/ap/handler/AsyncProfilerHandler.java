@@ -48,24 +48,24 @@ public class AsyncProfilerHandler implements HttpHandler {
                 return;
             }
 
-            final var recording = executor.run();
-            if (recording.isFailure()) {
-                final var cause = recording.getCause();
+            try {
+                executor.run();
+            } catch (IOException | RuntimeException cause) {
                 Logger.error(cause, "It has not been possible to execute the profiler command.");
                 sendText(exchange, HttpURLConnection.HTTP_INTERNAL_ERROR, "Profiling failed: " + cause.getMessage());
                 return;
             }
 
             // convert before committing to 200, so that conversion errors (e.g. a tag filter without spans) are reported
-            final var converted = executor.convert();
-            if (converted.isFailure()) {
-                final var cause = converted.getCause();
+            final java.nio.file.Path body;
+            try {
+                body = executor.convert();
+            } catch (IOException | RuntimeException cause) {
                 Logger.error(cause, "It has not been possible to convert the profile.");
                 sendText(exchange, HttpURLConnection.HTTP_INTERNAL_ERROR, "Conversion failed: " + cause.getMessage());
                 return;
             }
 
-            final var body = converted.get();
             try {
                 final var headers = exchange.getResponseHeaders();
                 headers.set("Content-Type", contentType(command.output));

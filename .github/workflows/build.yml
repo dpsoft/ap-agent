@@ -59,3 +59,12 @@ jobs:
           name: jacoco-report
           path: target/site/jacoco/
           retention-days: 14
+
+      - name: Upload compatibility report
+        if: always() && matrix.java == '21' && matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v7
+        with:
+          name: compatibility-report
+          path: target/compatibility-report.md
+          if-no-files-found: ignore
+          retention-days: 14

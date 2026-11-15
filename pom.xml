@@ -13,9 +13,12 @@
     <packaging>jar</packaging>
     <properties>
         <me.bechberger.ap-loader.version>4.6-14</me.bechberger.ap-loader.version>
-        <io.vavr.version>1.1.0</io.vavr.version>
         <com.typesafe.config.version>1.4.10</com.typesafe.config.version>
         <org.tinylog.version>2.8.1</org.tinylog.version>
+        <!-- async-profiler API that applications use to record spans (same version as ap-loader's async-profiler) -->
+        <async-profiler.api.version>4.6</async-profiler.api.version>
+        <!-- last published release, compared against the current build by CompatibilityIT -->
+        <ap-agent.baseline.version>0.1.10</ap-agent.baseline.version>
         <junit.version>5.14.4</junit.version>
         <surefire.version>3.6.1</surefire.version>
         <jacoco.version>0.8.16</jacoco.version>
@@ -40,11 +43,6 @@
             <groupId>me.bechberger</groupId>
             <artifactId>ap-loader-all</artifactId>
             <version>${me.bechberger.ap-loader.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.vavr</groupId>
-            <artifactId>vavr</artifactId>
-            <version>${io.vavr.version}</version>
         </dependency>
         <dependency>
             <groupId>com.typesafe</groupId>
@@ -96,6 +94,33 @@
                             <goal>properties</goal>
                         </goals>
                     </execution>
+                    <execution>
+                        <!-- jars placed on the classpath of the profiled application in the smoke tests -->
+                        <id>copy-application-jars</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <!-- the official async-profiler API (one.profiler.Span), as documented for span filters -->
+                                <artifactItem>
+                                    <groupId>tools.profiler</groupId>
+                                    <artifactId>async-profiler</artifactId>
+                                    <version>${async-profiler.api.version}</version>
+                                    <destFileName>async-profiler-api.jar</destFileName>
+                                </artifactItem>
+                                <!-- another ap-loader version: the agent must survive it without killing the application -->
+                                <artifactItem>
+                                    <groupId>me.bechberger</groupId>
+                                    <artifactId>ap-loader-all</artifactId>
+                                    <version>4.5-13</version>
+                                    <destFileName>conflicting-ap-loader.jar</destFileName>
+                                </artifactItem>
+                            </artifactItems>
+                            <outputDirectory>${project.build.directory}/it-app-libs</outputDirectory>
+                        </configuration>
+                    </execution>
                 </executions>
             </plugin>
             <plugin>
@@ -118,7 +143,10 @@
                 <configuration>
                     <argLine>@{argLine} -XX:+IgnoreUnrecognizedVMOptions --enable-native-access=ALL-UNNAMED</argLine>
                     <systemPropertyVariables>
-                        <ap-agent.it.async-profiler-api>${me.bechberger:ap-loader-all:jar}</ap-agent.it.async-profiler-api>
+                        <ap-agent.it.async-profiler-api>${project.build.directory}/it-app-libs/async-profiler-api.jar</ap-agent.it.async-profiler-api>
+                        <ap-agent.it.conflicting-ap-loader>${project.build.directory}/it-app-libs/conflicting-ap-loader.jar</ap-agent.it.conflicting-ap-loader>
+                        <ap-agent.it.baseline-dir>${project.build.directory}/baseline</ap-agent.it.baseline-dir>
+                        <ap-agent.it.baseline-version>${ap-agent.baseline.version}</ap-agent.it.baseline-version>
                         <ap-agent.it.jar>${project.build.directory}/${project.build.finalName}.jar</ap-agent.it.jar>
                         <ap-agent.it.test-classes>${project.build.testOutputDirectory}</ap-agent.it.test-classes>
                     </systemPropertyVariables>
@@ -198,10 +226,6 @@
                                 <relocation>
                                     <pattern>com.typesafe.config</pattern>
                                     <shadedPattern>io.github.dpsoft.ap.libs.com.typesafe.config</shadedPattern>
-                                </relocation>
-                                <relocation>
-                                    <pattern>io.vavr</pattern>
-                                    <shadedPattern>io.github.dpsoft.ap.libs.io.vavr</shadedPattern>
                                 </relocation>
                                 <relocation>
                                     <pattern>org.tinylog</pattern>

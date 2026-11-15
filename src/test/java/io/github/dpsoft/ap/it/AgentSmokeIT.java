@@ -58,6 +58,22 @@ class AgentSmokeIT {
         }
     }
 
+    /**
+     * Another ap-loader version on the application classpath makes AsyncProfilerLoader fail ("Multiple versions of
+     * async-profiler found"). The agent must log it and let the application run, never abort the JVM from premain.
+     */
+    @Test
+    void conflictingApLoaderOnTheClasspathDoesNotKillTheApplication() throws Exception {
+        final var agentJar = AgentProcess.requiredJar("ap-agent.it.jar");
+        final var conflicting = AgentProcess.requiredJar("ap-agent.it.conflicting-ap-loader");
+        try (var agent = AgentProcess.start(agentJar, List.of(), List.of("--no-spans"), List.of(conflicting), false)) {
+            Thread.sleep(1_000);
+            assertTrue(agent.isAlive(), "the application must keep running:\n" + agent.output());
+            assertTrue(agent.output().contains("Error trying to load Async Profiler"), agent.output());
+            assertFalse(agent.output().contains(AgentProcess.STARTED), agent.output());
+        }
+    }
+
     @Test
     void bannerCanBeDisabled() throws Exception {
         try (var agent = AgentProcess.start("ap-agent.show-banner=false")) {

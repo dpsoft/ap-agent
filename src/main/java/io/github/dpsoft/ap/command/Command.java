@@ -1,14 +1,15 @@
 package io.github.dpsoft.ap.command;
 
 import io.github.dpsoft.ap.config.AgentConfiguration;
-import io.vavr.collection.Array;
-import io.vavr.collection.List;
-import io.vavr.control.Option;
 import one.profiler.Events;
 
 import java.time.Duration;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class Command {
     public final String eventType;
@@ -45,10 +46,9 @@ public class Command {
 
     private static Output getOutput(Map<String, String> params, AgentConfiguration.Handler configuration) {
         if (params.get("output") == null && configuration.isGoMode()) return Output.PPROF;
-        return Option
-                .of(params.get("output"))
+        return Optional.ofNullable(params.get("output"))
                 .flatMap(Output::get)
-                .getOrElse(Output.JFR);
+                .orElse(Output.JFR);
     }
 
     /**
@@ -58,7 +58,7 @@ public class Command {
     private static String getEventType(String segment, Map<String, String> params, Output output) {
         final var event = params.get("event");
         if (event != null && !event.isEmpty()) return event;
-        if (Output.PPROF == output) return GOProfileTypes.get(segment).getOrElse(GOProfileTypes.PROFILE).event();
+        if (Output.PPROF == output) return GOProfileTypes.get(segment).orElse(GOProfileTypes.PROFILE).event();
         return Events.CTIMER;
     }
 
@@ -79,16 +79,18 @@ public class Command {
     }
 
     private static List<String> getEventParams(Map<String, String> parameters) {
-        return getConverterParams(parameters).appendAll(getSpanFilters(parameters));
+        final var params = new ArrayList<String>();
+        addConverterParams(parameters, params);
+        addSpanFilters(parameters, params);
+        return Collections.unmodifiableList(params);
     }
 
-    private static List<String> getConverterParams(Map<String, String> parameters) {
-        if (parameters.get("params") == null) return List.empty();
-        return List.of(parameters.get("params").split(","))
-                .map(param -> "--" + param)
-                .map(param -> param.replace("=", ","))
-                .map(param -> param.split(","))
-                .flatMap(Array::of);
+    /** {@code params=total,include=com.foo.*} becomes {@code --total --include com.foo.*}. */
+    private static void addConverterParams(Map<String, String> parameters, List<String> params) {
+        if (parameters.get("params") == null) return;
+        for (var param : parameters.get("params").split(",")) {
+            params.addAll(Arrays.asList(("--" + param).replace("=", ",").split(",")));
+        }
     }
 
     /**
@@ -96,10 +98,9 @@ public class Command {
      * whose tag fully matches {@code tag} (a regex, which may contain commas) and/or that lasted at least
      * {@code latency} milliseconds. They get dedicated parameters because {@code params} is split on commas.
      */
-    private static List<String> getSpanFilters(Map<String, String> parameters) {
-        var filters = List.<String>empty();
+    private static void addSpanFilters(Map<String, String> parameters, List<String> filters) {
         final var tag = parameters.get("tag");
-        if (tag != null && !tag.isEmpty()) filters = filters.appendAll(List.of("--tag", tag));
+        if (tag != null && !tag.isEmpty()) filters.addAll(List.of("--tag", tag));
         final var latency = parameters.get("latency");
         if (latency != null && !latency.isEmpty()) {
             final long millis;
@@ -112,9 +113,8 @@ public class Command {
             if (millis < 0 || millis > Long.MAX_VALUE / 1_000_000) {
                 throw new IllegalArgumentException("latency must be between 0 and " + Long.MAX_VALUE / 1_000_000 + " ms: " + latency);
             }
-            filters = filters.appendAll(List.of("--latency", Long.toString(millis)));
+            filters.addAll(List.of("--latency", Long.toString(millis)));
         }
-        return filters;
     }
 
     public String asFormatString(String absolutePath) {
@@ -146,10 +146,10 @@ public class Command {
             this.value = value;
         }
 
-        public static Option<Output> get(String value) {
-            return Option.ofOptional(Arrays.stream(Output.values())
+        public static Optional<Output> get(String value) {
+            return Arrays.stream(Output.values())
                     .filter(output -> output.value.equals(value))
-                    .findFirst());
+                    .findFirst();
         }
     }
 
@@ -170,10 +170,10 @@ public class Command {
             return event;
         }
 
-        public static Option<GOProfileTypes> get(String value) {
-            return Option.ofOptional(Arrays.stream(GOProfileTypes.values())
+        public static Optional<GOProfileTypes> get(String value) {
+            return Arrays.stream(GOProfileTypes.values())
                     .filter(profile -> profile.profile.equals(value))
-                    .findFirst());
+                    .findFirst();
         }
     }
 }

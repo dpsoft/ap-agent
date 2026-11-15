@@ -28,8 +28,11 @@ class ProfilerExecutorTest {
         final var failure = new AtomicReference<Throwable>();
         final var interrupted = new AtomicReference<Boolean>();
         final var worker = new Thread(() -> {
-            final var result = executor.run();
-            failure.set(result.isFailure() ? result.getCause() : null);
+            try {
+                executor.run();
+            } catch (Throwable e) {
+                failure.set(e);
+            }
             interrupted.set(Thread.currentThread().isInterrupted());
         });
         worker.start();
@@ -44,11 +47,10 @@ class ProfilerExecutorTest {
         assertFalse(executor.recordingFile().exists(), "the temporary recording must be deleted");
         // the profiler was stopped: a new session can start right away
         final var next = ProfilerExecutor.with(profiler, Command.from("profile", Map.of("duration", "1", "output", "flame"), AgentConfiguration.instance()));
-        assertTrue(next.run().isSuccess());
+        next.run();
         final var converted = next.convert();
-        assertTrue(converted.isSuccess());
-        assertTrue(java.nio.file.Files.size(converted.get()) > 0);
-        java.nio.file.Files.delete(converted.get());
+        assertTrue(java.nio.file.Files.size(converted) > 0);
+        java.nio.file.Files.delete(converted);
         assertFalse(next.recordingFile().exists());
     }
 }
