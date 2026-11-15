@@ -28,7 +28,7 @@
 	#status {left: 0}
 	#match {right: 0}
 	#reset {cursor: pointer}
-	#canvas {width: 100%; height: 288px}
+	#canvas {width: 100%; height: 256px}
 	#tree {display: none; clear: both; padding-top: 5px; font-size: 14px}
 	#tree ul {list-style: none; margin: 0; padding-left: 17px}
 	#tree > ul {padding-left: 0}
@@ -116,7 +116,7 @@
 	const U = undefined;
 	const units = 'samples';
 	const maxdiff = -1;
-	const levels = Array(18);
+	const levels = Array(16);
 	for (let h = 0; h < levels.length; h++) {
 		levels[h] = [];
 	}
@@ -525,157 +525,196 @@
 const cpool = [
 'all',
 ' /usr/lib64/libz.so.1.3.1.zlib-ng',
-' Java_java_util_zip_Deflater_deflateBytesBytes',
+' JVM_SleepNanos',
+'!avaThread::sleep_nanos',
+'$_java_util_zip_Deflater_deflateBytesBytes',
+' PlatformEvent::park_nanos',
+' __lll_lock_wake',
+'"pthread_mutex_unlock_usercnt',
+' bigIntegerLeftShiftWorker',
+' checkcast_arraycopy',
 ' deflate',
-' io/github/dpsoft/ap/demo/DemoShop$$Lambda.0x000000005306b548.run',
+' io/github/dpsoft/ap/demo/DemoShop$$Lambda.0x000000003c06b548.run',
 'BJsonCodec.parse',
-'BOrderService.placeOrder',
+'BOrderRepository.save',
+'GService.placeOrder',
 'BPricingEngine.price',
 'PvolumeDiscount',
 'BReceiptCompressor.compress',
 'A.serve',
 ' java/lang/AbstractStringBuilder.append',
-'*String.indexOf',
-'1length',
+'@ensureCapacityNewCoder',
+'*String.<init>',
 '1split',
 '2ubSequence',
 '4string',
-'1toCharArray',
 '1valueOf',
 '0Builder.append',
-'0Latin1.indexOf',
-'7toChars',
+'8toString',
+'0Latin1.newString',
 '*Thread.run',
 '4With',
+'1sleep',
+'6Nanos',
+';0',
 '%math/BigDecimal.<init>',
 '5add',
 '5bigMultiplyPowerTen',
-'5compactValFor',
 '5divide',
 ';AndRound',
 '5multiply',
+'5needIncrement',
 '5pow',
-'5valueOf',
-'-Integer.equals',
+'-Integer.<init>',
+'5equals',
 '5getLowestSetBit',
 '5multiply',
+'=ByInt',
 '=ToLen',
 '5pow',
 '5shiftLeft',
-'*MutableBigInteger.divide',
+'6tripLeadingZeroInts',
+'5trustedStripLeadingZeroInts',
+'*MutableBigInteger.compareHalf',
+'<divide',
 'BKnuth',
 'BMagnitude',
 '<getMagnitudeArray',
+'<isOdd',
+'>Zero',
 '<mulsub',
 '<primitiveLeftShift',
-'<rightShift',
 '<toBigDecimal',
 '%util/AbstractCollection.toString',
 '2Map.toString',
-'+rrayList.size',
-'/s.copyOfRange',
+'+rrayList.add',
+'4grow',
+'/s.copyOf',
+'7Range',
 '1fill',
-'*HashMap$EntryIterator.next',
-'2HashIterator.nextNode',
-'*regex/Matcher.find',
-'8search',
-'0Pattern$Slice.match',
-'9tart.match',
-'7.split',
+'*HashMap$Node.getKey',
+':Value',
+'1.put',
+'5Val',
+'*regex/Pattern.split',
 '*zip/Deflater.deflate',
 '>BytesBytes',
 '!int_disjoint_arraycopy',
+'!long_disjoint_arraycopy',
 ' multiplyToLen'
 ];
 unpack(cpool);
 
-n(3,42)
-u(176)
-u(184)
-u(32)
-u(80)
-u(49)
-u(41,4)
+n(3,60)
+u(232)
+u(240)
+u(88)
+u(144)
 u(113)
-u(113)
-u(113,2)
-u(98,1)
-u(162)
-f(130,10,1)
-f(465,9,1,2)
-u(465)
-u(122,1)
-u(130)
-u(106)
-f(434,11,1)
-u(442)
-u(458)
-u(449)
-f(57,6,1)
+u(97,4)
+u(177,2)
+u(177)
+u(177,1)
+u(514)
+u(514)
+u(522)
+u(522)
+u(75)
+f(585,9,1)
+u(585)
+u(186)
 u(194)
-u(138)
-u(170)
-f(65,6,1,34)
-u(202,3)
-u(202)
-f(201,9,2,1)
+u(226)
+u(538)
+f(569,7,1,2)
+f(578,8,1,1)
+f(106,6,1)
+u(250)
 u(258)
-f(225,7,1,16)
-u(226)
-u(226)
-u(210,5)
-u(282)
-f(491,12,3,2)
-f(234,10,2,11)
-f(314,11,1,7)
-u(314)
-u(322)
-u(329)
-f(346,15,3,1)
-n(354,2)
-n(362,1)
-u(354)
-u(354)
-f(370,11,1,3)
-f(338,12,1,2)
-u(402,1)
-n(410)
-f(242,7,1)
-u(242)
-u(282)
-f(250,7,1,13)
-u(194,1)
-u(218)
-f(297,8,1,12)
-u(266,1)
-n(274,2)
-n(281,8)
-f(282,10,1,7)
-f(290,11,3,4)
-f(499,12,2,2)
-f(306,9,2,1)
-u(306)
-f(394,7,1)
-f(73,6,1,3)
-u(377,2)
-u(154)
-u(146)
-u(385)
-u(154,1)
-u(154)
-u(90)
-u(106)
-f(418,11,1)
-u(418)
-u(426)
-f(474,7,1)
-u(473)
-u(481)
+u(265)
 u(19)
-u(27)
+u(28)
+u(44)
+u(59)
+u(51)
+f(121,6,1)
+u(274)
+u(274)
+u(273)
+f(129,6,1,43)
+u(282,1)
+n(297,17)
+f(298,8,2,15)
+u(298)
+u(290,3)
+u(362)
+f(611,12,1,2)
+f(306,10,2,12)
+u(322,5)
+f(418,12,1,2)
+n(458)
+f(466,13,1,1)
+f(426,11,1,5)
+u(426)
+u(434)
+u(441)
+f(474,15,2,1)
+n(482,2)
+f(490,11,2)
+u(450)
+u(538,1)
+u(611)
+f(546,13,1)
+f(314,7,1,5)
+u(314)
+u(362)
+f(338,10,3,1)
+n(611)
+f(330,7,1,20)
+f(385,8,2,18)
+u(346,1)
+n(354,3)
+n(361,12)
+f(362,10,2,10)
+f(370,11,1,3,2,0,0)
+f(394,12,1,1)
+n(537)
+u(611)
+f(378,11,1,5)
+f(627,12,1,4)
+f(410,11,4,1)
+u(402)
+u(538)
+u(611)
+f(394,9,1,2)
+u(394)
+f(67,11,1,1)
+f(137,6,1,11)
+f(497,7,1,7)
+u(210)
+u(202)
+u(505)
+u(210,2)
+u(154,1)
+u(161)
+u(530)
+f(210,12,1)
+u(154)
+u(162)
+u(530)
+f(218,11,1)
+u(170)
+u(619)
+f(554,11,1,2)
+n(562)
+f(594,7,2,3)
+u(593)
+u(601)
+u(35)
+u(83)
 u(11)
-u(11)
-u(11)
+f(11,13,1,2)
+f(11,14,1,1)
 
 search();
 if (treeview) { treeview = false; document.getElementById('treeview').onclick(); }
