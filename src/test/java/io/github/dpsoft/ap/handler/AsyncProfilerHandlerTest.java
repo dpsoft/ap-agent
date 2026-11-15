@@ -237,10 +237,36 @@ class AsyncProfilerHandlerTest {
 
     @Test
     void invalidParametersReturn400() throws Exception {
-        for (var query : new String[]{"duration=abc", "duration=0", "latency=slow"}) {
+        for (var query : new String[]{"duration=abc", "duration=0", "duration=9223372036854776", "latency=slow"}) {
             final var response = get("/profiler/profile?" + query);
             assertEquals(400, response.statusCode(), query);
             assertTrue(text(response.body()).startsWith("Invalid parameter"), query + ": " + text(response.body()));
+        }
+    }
+
+    @Test
+    void invalidTagRegexIsRejectedBeforeRecording() throws Exception {
+        final long start = System.nanoTime();
+        final var response = get("/profiler/profile?duration=5&output=flame&tag=" + encode("["));
+        assertEquals(400, response.statusCode(), text(response.body()));
+        assertTrue(java.time.Duration.ofNanos(System.nanoTime() - start).toSeconds() < 5, "must fail before recording");
+    }
+
+    @Test
+    void requestsDoNotLeakTemporaryFiles() throws Exception {
+        final long before = temporaryFiles();
+        profile("output=flame");
+        profile("output=jfr");
+        get("/profiler/profile?output=flame&tag=" + encode("["));
+        profile("event=lock&interval=0");
+        assertEquals(before, temporaryFiles());
+    }
+
+    private static long temporaryFiles() throws IOException {
+        try (var files = java.nio.file.Files.list(java.nio.file.Paths.get(System.getProperty("java.io.tmpdir")))) {
+            return files.map(f -> f.getFileName().toString())
+                    .filter(name -> name.startsWith("ap-agent") && (name.endsWith(".jfr") || name.endsWith(".out")))
+                    .count();
         }
     }
 

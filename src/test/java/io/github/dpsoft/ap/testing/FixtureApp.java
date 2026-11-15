@@ -15,17 +15,21 @@ public final class FixtureApp {
     private static volatile long sink;
 
     public static void main(String[] args) throws Exception {
-        start().join();
+        start(!java.util.Arrays.asList(args).contains("--no-spans")).join();
     }
 
     private static final Object LOCK = new Object();
 
     /** Starts the workload: one CPU/heap/native thread plus two threads contending on a monitor. */
     public static Workload start() {
+        return start(true);
+    }
+
+    public static Workload start(boolean withSpans) {
         final var threads = new ArrayList<Thread>();
         threads.add(daemon(FixtureApp::loop, "fixture-workload"));
         for (int i = 0; i < 2; i++) threads.add(daemon(FixtureApp::contend, "fixture-contention-" + i));
-        threads.add(daemon(FixtureApp::spans, "fixture-spans"));
+        if (withSpans) threads.add(daemon(FixtureApp::spans, "fixture-spans"));
         return new Workload(threads);
     }
 

@@ -12,6 +12,7 @@ import org.tinylog.Logger;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 
 public class AsyncProfilerHandler implements HttpHandler {
     private final AsyncProfiler asyncProfiler;
@@ -38,14 +39,16 @@ public class AsyncProfilerHandler implements HttpHandler {
             }
 
             final Command command;
+            final ProfilerExecutor executor;
             try {
                 command = Command.from(Functions.lastSegment(path), Functions.splitQueryParams(exchange.getRequestURI()), configuration);
+                executor = ProfilerExecutor.with(asyncProfiler, command); // validates converter arguments (tag regex...)
             } catch (IllegalArgumentException invalid) {
                 sendText(exchange, HttpURLConnection.HTTP_BAD_REQUEST, "Invalid parameter: " + invalid.getMessage());
                 return;
             }
 
-            final var recording = ProfilerExecutor.with(asyncProfiler, command).run();
+            final var recording = executor.run();
             if (recording.isFailure()) {
                 final var cause = recording.getCause();
                 Logger.error(cause, "It has not been possible to execute the profiler command.");
@@ -53,11 +56,27 @@ public class AsyncProfilerHandler implements HttpHandler {
                 return;
             }
 
-            final var headers = exchange.getResponseHeaders();
-            headers.set("Content-Type", contentType(command.output));
-            if (command.shouldCompress()) headers.set("Content-Encoding", "gzip");
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
-            recording.get().pipeTo(exchange.getResponseBody());
+            // convert before committing to 200, so that conversion errors (e.g. a tag filter without spans) are reported
+            final var converted = executor.convert();
+            if (converted.isFailure()) {
+                final var cause = converted.getCause();
+                Logger.error(cause, "It has not been possible to convert the profile.");
+                sendText(exchange, HttpURLConnection.HTTP_INTERNAL_ERROR, "Conversion failed: " + cause.getMessage());
+                return;
+            }
+
+            final var body = converted.get();
+            try {
+                final var headers = exchange.getResponseHeaders();
+                headers.set("Content-Type", contentType(command.output));
+                if (command.shouldCompress()) headers.set("Content-Encoding", "gzip");
+                exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, Files.size(body));
+                try (var out = exchange.getResponseBody()) {
+                    Files.copy(body, out);
+                }
+            } finally {
+                Files.deleteIfExists(body);
+            }
         } finally {
             exchange.close();
         }

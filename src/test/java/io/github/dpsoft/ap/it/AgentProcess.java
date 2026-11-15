@@ -35,6 +35,10 @@ final class AgentProcess implements AutoCloseable {
     }
 
     static AgentProcess start(String... systemProperties) throws Exception {
+        return start(java.util.List.of(systemProperties), java.util.List.of());
+    }
+
+    static AgentProcess start(List<String> systemProperties, List<String> appArgs) throws Exception {
         final var agentJar = requiredPath("ap-agent.it.jar");
         final var testClasses = requiredPath("ap-agent.it.test-classes");
         final int port = freePort();
@@ -52,6 +56,7 @@ final class AgentProcess implements AutoCloseable {
         // the application brings the async-profiler API (one.profiler.Span) itself, as documented for span filters
         command.add(testClasses + File.pathSeparator + requiredPath("ap-agent.it.async-profiler-api"));
         command.add(FixtureApp.class.getName());
+        command.addAll(appArgs);
 
         final var log = Files.createTempFile("ap-agent-it", ".log");
         final Process process;

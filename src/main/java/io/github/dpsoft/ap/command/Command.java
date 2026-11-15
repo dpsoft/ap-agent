@@ -72,7 +72,9 @@ public class Command {
         } catch (NumberFormatException e) {
             throw new IllegalArgumentException("duration must be a number of seconds: " + raw);
         }
-        if (seconds <= 0) throw new IllegalArgumentException("duration must be > 0 seconds: " + raw);
+        if (seconds <= 0 || seconds > Long.MAX_VALUE / 1000) {
+            throw new IllegalArgumentException("duration must be between 1 and " + Long.MAX_VALUE / 1000 + " seconds: " + raw);
+        }
         return Duration.ofSeconds(seconds);
     }
 
