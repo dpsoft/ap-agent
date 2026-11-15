@@ -74,6 +74,21 @@ public final class Profiles {
         }
     }
 
+    /** Distinct tags of the profiler.Span events (async-profiler Span API). */
+    public static java.util.Set<String> spanTags(byte[] raw) throws IOException {
+        final var file = Files.createTempFile("ap-agent-test", ".jfr");
+        try {
+            Files.write(file, raw);
+            final var tags = new java.util.TreeSet<String>();
+            for (RecordedEvent event : RecordingFile.readAllEvents(file)) {
+                if (event.getEventType().getName().equals("profiler.Span")) tags.add(event.getString("tag"));
+            }
+            return tags;
+        } finally {
+            Files.deleteIfExists(file);
+        }
+    }
+
     public static Pprof pprof(byte[] gzippedBody) throws IOException {
         return Pprof.parse(gunzip(gzippedBody));
     }

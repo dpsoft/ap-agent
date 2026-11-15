@@ -33,9 +33,10 @@ class AsyncProfilerHandlerTest {
     @BeforeAll
     static void startServer() throws Exception {
         assumeTrue(AsyncProfilerLoader.isSupported(), "Async Profiler is not supported on this platform");
+        final var profiler = AsyncProfilerLoader.load(); // before the workload: the Span API binds to the loaded library
         workload = FixtureApp.start();
         server = HttpServer.create(new InetSocketAddress("127.0.0.1", 0), 0);
-        server.createContext("/", new AsyncProfilerHandler(AsyncProfilerLoader.load(), AgentConfiguration.instance()));
+        server.createContext("/", new AsyncProfilerHandler(profiler, AgentConfiguration.instance()));
         server.start();
     }
 
@@ -106,6 +107,47 @@ class AsyncProfilerHandlerTest {
         // (async-profiler 4.6+ also labels the graph with units = 'bytes')
         assertTrue(flameRootTotal(total) > 64 * flameRootTotal(counted),
                 "params=total should accumulate bytes: " + flameRootTotal(total) + " vs " + flameRootTotal(counted));
+    }
+
+    @Test
+    void jfrContainsSpansWithTheirTags() throws Exception {
+        final var raw = gunzip(profile("output=jfr").body());
+        final var tags = spanTags(raw);
+        assertTrue(tags.contains(FixtureApp.ORDERS_TAG) && tags.contains(FixtureApp.USERS_TAG), tags.toString());
+    }
+
+    @Test
+    void tagFilterKeepsOnlySamplesInsideMatchingSpans() throws Exception {
+        final long all = flameRootTotal(text(profile("output=flame").body()));
+        // the regex contains a comma: it must reach the converter intact
+        final long orders = flameRootTotal(text(profile("output=flame&tag=" + encode("fixture:kind=orders,.*")).body()));
+        final long fixtures = flameRootTotal(text(profile("output=flame&tag=" + encode("fixture:.*")).body()));
+        assertTrue(orders > 0, "orders=" + orders);
+        assertTrue(orders < all, "orders=" + orders + " all=" + all);
+        assertTrue(fixtures > orders, "fixtures=" + fixtures + " orders=" + orders);
+    }
+
+    @Test
+    void tagFilterWithoutMatchesProducesAnEmptyGraph() throws Exception {
+        final var response = profile("output=flame&tag=nomatch");
+        assertEquals(200, response.statusCode());
+        assertEquals(-1, flameRootTotal(text(response.body())));
+    }
+
+    @Test
+    void latencyFilterKeepsOnlySlowSpans() throws Exception {
+        assertTrue(flameRootTotal(text(profile("output=flame&latency=0").body())) > 0);
+        assertEquals(-1, flameRootTotal(text(profile("output=flame&latency=60000").body())));
+    }
+
+    @Test
+    void tagFilterAppliesToPprof() throws Exception {
+        final var profile = pprof(profile("output=pprof&tag=" + encode("fixture:kind=users,.*")).body());
+        assertTrue(profile.samples > 0, profile.toString());
+    }
+
+    private static String encode(String value) {
+        return java.net.URLEncoder.encode(value, java.nio.charset.StandardCharsets.UTF_8);
     }
 
     @Test

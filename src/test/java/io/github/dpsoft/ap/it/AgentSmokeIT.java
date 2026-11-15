@@ -37,6 +37,17 @@ class AgentSmokeIT {
     }
 
     @Test
+    void spanFiltersWorkThroughTheShadedAgent() throws Exception {
+        try (var agent = AgentProcess.start()) {
+            final var raw = gunzip(agent.get("/profiler/profile?duration=1").body());
+            assertFalse(spanTags(raw).isEmpty(), "the application's one.profiler.Span must bind to the agent's profiler");
+            final var tag = java.net.URLEncoder.encode("fixture:kind=orders,.*", java.nio.charset.StandardCharsets.UTF_8);
+            final var flame = agent.get("/profiler/profile?duration=1&output=flame&tag=" + tag);
+            assertTrue(flameRootTotal(text(flame.body())) > 0);
+        }
+    }
+
+    @Test
     void bannerCanBeDisabled() throws Exception {
         try (var agent = AgentProcess.start("ap-agent.show-banner=false")) {
             assertFalse(agent.output().contains("Async Profiler Agent"), agent.output());

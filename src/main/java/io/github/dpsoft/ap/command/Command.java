@@ -63,12 +63,34 @@ public class Command {
     }
 
     private static List<String> getEventParams(Map<String, String> parameters) {
+        return getConverterParams(parameters).appendAll(getSpanFilters(parameters));
+    }
+
+    private static List<String> getConverterParams(Map<String, String> parameters) {
         if (parameters.get("params") == null) return List.empty();
         return List.of(parameters.get("params").split(","))
                 .map(param -> "--" + param)
                 .map(param -> param.replace("=", ","))
                 .map(param -> param.split(","))
                 .flatMap(Array::of);
+    }
+
+    /**
+     * Span filters (async-profiler 4.5+ Span API): keep only the samples recorded inside spans of the same thread
+     * whose tag fully matches {@code tag} (a regex, which may contain commas) and/or that lasted at least
+     * {@code latency} milliseconds. They get dedicated parameters because {@code params} is split on commas.
+     */
+    private static List<String> getSpanFilters(Map<String, String> parameters) {
+        var filters = List.<String>empty();
+        final var tag = parameters.get("tag");
+        if (tag != null && !tag.isEmpty()) filters = filters.appendAll(List.of("--tag", tag));
+        final var latency = parameters.get("latency");
+        if (latency != null && !latency.isEmpty()) {
+            final long millis = Long.parseLong(latency);
+            if (millis < 0) throw new IllegalArgumentException("latency must be >= 0 ms: " + latency);
+            filters = filters.appendAll(List.of("--latency", Long.toString(millis)));
+        }
+        return filters;
     }
 
     public String asFormatString(String absolutePath) {

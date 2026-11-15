@@ -85,6 +85,24 @@ class CommandTest {
     }
 
     @Test
+    void spanFiltersKeepCommasAndFollowConverterParams() {
+        final var command = command(Map.of("params", "total", "tag", "SparkTask:.*,taskAttemptId=123,.*", "latency", "50"));
+        assertEquals(List.of("--total", "--tag", "SparkTask:.*,taskAttemptId=123,.*", "--latency", "50"),
+                command.eventParams.toJavaList());
+    }
+
+    @Test
+    void emptySpanFiltersAreIgnored() {
+        assertTrue(command(Map.of("tag", "", "latency", "")).eventParams.isEmpty());
+    }
+
+    @Test
+    void invalidLatencyIsRejected() {
+        assertThrows(NumberFormatException.class, () -> command(Map.of("latency", "slow")));
+        assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "-1")));
+    }
+
+    @Test
     void asFormatStringBuildsStartCommand() {
         final var command = command(Map.of("event", "alloc", "interval", "512k"));
         assertEquals("start,jfr,event=alloc,interval=512k,file=/tmp/x.jfr", command.asFormatString("/tmp/x.jfr"));
