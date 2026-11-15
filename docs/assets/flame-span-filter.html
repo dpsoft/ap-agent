@@ -28,7 +28,7 @@
 	#status {left: 0}
 	#match {right: 0}
 	#reset {cursor: pointer}
-	#canvas {width: 100%; height: 256px}
+	#canvas {width: 100%; height: 288px}
 	#tree {display: none; clear: both; padding-top: 5px; font-size: 14px}
 	#tree ul {list-style: none; margin: 0; padding-left: 17px}
 	#tree > ul {padding-left: 0}
@@ -116,7 +116,7 @@
 	const U = undefined;
 	const units = 'samples';
 	const maxdiff = -1;
-	const levels = Array(16);
+	const levels = Array(18);
 	for (let h = 0; h < levels.length; h++) {
 		levels[h] = [];
 	}
@@ -527,146 +527,155 @@ const cpool = [
 ' /usr/lib64/libz.so.1.3.1.zlib-ng',
 ' Java_java_util_zip_Deflater_deflateBytesBytes',
 ' deflate',
-' io/github/dpsoft/ap/demo/DemoShop$$Lambda.0x00000000a106b548.run',
+' io/github/dpsoft/ap/demo/DemoShop$$Lambda.0x000000005306b548.run',
 'BJsonCodec.parse',
-'Lrender',
 'BOrderService.placeOrder',
 'BPricingEngine.price',
 'PvolumeDiscount',
 'BReceiptCompressor.compress',
 'A.serve',
 ' java/lang/AbstractStringBuilder.append',
-'*String.<init>',
-'1replace',
+'*String.indexOf',
+'1length',
 '1split',
-'2ubstring',
+'2ubSequence',
+'4string',
+'1toCharArray',
 '1valueOf',
 '0Builder.append',
-'8toString',
-'0Latin1.newString',
-'7replace',
+'0Latin1.indexOf',
+'7toChars',
 '*Thread.run',
 '4With',
-'%math/BigDecimal.bigMultiplyPowerTen',
+'%math/BigDecimal.<init>',
+'5add',
+'5bigMultiplyPowerTen',
+'5compactValFor',
 '5divide',
 ';AndRound',
 '5multiply',
 '5pow',
-'-Integer.multiply',
-'=ByInt',
+'5valueOf',
+'-Integer.equals',
+'5getLowestSetBit',
+'5multiply',
 '=ToLen',
-'BCheck',
 '5pow',
-'5stripLeadingZeroInts',
-'5trustedStripLeadingZeroInts',
+'5shiftLeft',
 '*MutableBigInteger.divide',
 'BKnuth',
 'BMagnitude',
 '<getMagnitudeArray',
 '<mulsub',
+'<primitiveLeftShift',
+'<rightShift',
 '<toBigDecimal',
 '%util/AbstractCollection.toString',
 '2Map.toString',
-'+rrays.copyOfRange',
+'+rrayList.size',
+'/s.copyOfRange',
+'1fill',
 '*HashMap$EntryIterator.next',
 '2HashIterator.nextNode',
-'2Node.getKey',
-':Value',
-'1.get',
-'5Node',
 '*regex/Matcher.find',
 '8search',
-'0Pattern$Start.match',
+'0Pattern$Slice.match',
+'9tart.match',
 '7.split',
 '*zip/Deflater.deflate',
 '>BytesBytes',
-'!byte_arraycopy',
-'!dk/internal/util/DecimalDigits.uncheckedGetCharsLatin1',
-'IPutPairLatin1',
 '!int_disjoint_arraycopy',
-'!long_disjoint_arraycopy',
 ' multiplyToLen'
 ];
 unpack(cpool);
 
-n(3,30)
+n(3,42)
 u(176)
 u(184)
 u(32)
-u(88)
-u(57)
-u(41,3)
-u(114,1)
-u(169)
-f(122,7,1,2)
-u(121)
-u(121,1)
-u(130)
+u(80)
+u(49)
+u(41,4)
+u(113)
+u(113)
+u(113,2)
+u(98,1)
 u(162)
+f(130,10,1)
+f(465,9,1,2)
+u(465)
+u(122,1)
+u(130)
+u(106)
+f(434,11,1)
+u(442)
+u(458)
+u(449)
+f(57,6,1)
+u(194)
+u(138)
+u(170)
+f(65,6,1,34)
+u(202,3)
+u(202)
+f(201,9,2,1)
+u(258)
+f(225,7,1,16)
+u(226)
+u(226)
+u(210,5)
+u(282)
+f(491,12,3,2)
+f(234,10,2,11)
+f(314,11,1,7)
+u(314)
+u(322)
+u(329)
+f(346,15,3,1)
+n(354,2)
+n(362,1)
 u(354)
-u(459)
-f(433,9,1)
-u(433)
-u(410)
+u(354)
+f(370,11,1,3)
+f(338,12,1,2)
+u(402,1)
+n(410)
+f(242,7,1)
+u(242)
+u(282)
+f(250,7,1,13)
+u(194,1)
+u(218)
+f(297,8,1,12)
+u(266,1)
+n(274,2)
+n(281,8)
+f(282,10,1,7)
+f(290,11,3,4)
+f(499,12,2,2)
+f(306,9,2,1)
+u(306)
+f(394,7,1)
+f(73,6,1,3)
+u(377,2)
+u(154)
+u(146)
+u(385)
+u(154,1)
+u(154)
+u(90)
+u(106)
+f(418,11,1)
 u(418)
 u(426)
-f(49,6,1,2)
-u(146,1)
-u(98)
-u(466)
-u(474)
-f(154,7,1)
-u(106)
-u(491)
-f(65,6,1)
-u(394)
-u(402)
-f(73,6,1,17)
-u(201,7)
-u(202)
-u(202)
-u(194,2)
-u(234)
-f(483,12,1,1)
-f(210,10,1,5)
-u(290,4)
-u(290)
-u(298)
-u(305)
-f(322,15,3,1)
-f(330,11,1)
-u(314)
-f(218,7,1)
-u(218)
-u(234)
-f(226,7,1,9)
-u(265)
-f(233,9,1,8)
-f(234,10,1,7)
-f(241,11,1,1)
-n(250,4)
-f(258,12,1,1)
-n(499,2)
-f(282,11,2,1)
-u(274)
-f(81,6,1,7)
-u(337,4)
-u(146)
-u(138)
-u(345)
-u(362,2)
-u(362)
-u(370)
-f(378,11,2,1)
-n(386)
-f(442,7,1,3)
-u(441)
-u(449)
+f(474,7,1)
+u(473)
+u(481)
 u(19)
 u(27)
 u(11)
-f(11,13,1,2)
-f(11,14,1,1)
+u(11)
+u(11)
 
 search();
 if (treeview) { treeview = false; document.getElementById('treeview').onclick(); }

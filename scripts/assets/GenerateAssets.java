@@ -149,10 +149,10 @@ public class GenerateAssets {
         ffmpeg(frames, gif);
     }
 
-    /** The README demo: sweep the CPU flame graph, zoom into the request path, search "placeOrder", tree view. */
+    /** The README demo: sweep the CPU flame graph, zoom into a frame and back, search "regex", tree view. */
     static void demo(Browser browser, Path out) throws Exception {
         record(browser, FLAME_HEIGHT, out.resolve("demo.gif"), (page, hold) -> {
-            page.onDialog(dialog -> dialog.accept("placeOrder"));
+            page.onDialog(dialog -> dialog.accept("regex")); // highlights java.util.regex frames across the graph
             page.navigate(out.resolve("flame-cpu.html").toUri().toString());
             page.waitForTimeout(800);
             final var box = page.locator("#canvas").boundingBox();
@@ -165,8 +165,9 @@ public class GenerateAssets {
             page.mouse().click(box.x + box.width * 0.30, box.y + row * 6 + 8);
             page.waitForTimeout(300);
             hold.accept(14);
-            page.keyboard().press("Escape");
-            page.waitForTimeout(200);
+            page.mouse().click(box.x + box.width * 0.5, box.y + 8); // click the root row: back to the whole graph
+            page.waitForTimeout(300);
+            hold.accept(6);
             page.keyboard().press("Control+f");
             page.waitForTimeout(400);
             hold.accept(16);
@@ -220,7 +221,7 @@ public class GenerateAssets {
         final var palette = Files.createTempFile("palette", ".png");
         run("ffmpeg", "-y", "-loglevel", "error", "-framerate", "10", "-i", input,
                 "-vf", "scale=960:-1:flags=lanczos,palettegen=stats_mode=diff", palette.toString());
-        run("ffmpeg", "-y", "-loglevel", "error", "-framerate", "10", "-i", input, "-i", palette.toString(),
+        run("ffmpeg", "-y", "-loglevel", "error", "-framerate", "10", "-i", input, "-i", palette.toString(), "-loop", "0",
                 "-lavfi", "scale=960:-1:flags=lanczos[x];[x][1:v]paletteuse=dither=bayer:bayer_scale=5", gif.toString());
         System.out.println("demo " + gif + " (" + Files.size(gif) + " bytes)");
     }
