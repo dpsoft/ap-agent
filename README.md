@@ -14,7 +14,7 @@ memory as interactive flame graphs, heatmaps, JFR or Go-compatible pprof.*
 ![A CPU profile requested with curl and explored in the browser](docs/assets/demo.gif)
 
 *One `curl` against a running JVM: 30 seconds of CPU come back as an async-profiler 4.6 flame graph — zoom into a
-frame, search for a method, switch to the tree view. [Interactive version](docs/assets/flame-cpu.html).*
+frame, search for a method, switch to the tree view. [Open it live](https://htmlpreview.github.io/?https://github.com/dpsoft/ap-agent/blob/main/docs/assets/flame-cpu.html).*
 
 ---
 
