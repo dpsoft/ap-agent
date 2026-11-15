@@ -13,16 +13,40 @@ public final class FixtureApp {
     private static volatile long sink;
 
     public static void main(String[] args) throws Exception {
-        final var worker = start();
-        worker.join();
+        start().join();
     }
 
     private static final Object LOCK = new Object();
 
     /** Starts the workload: one CPU/heap/native thread plus two threads contending on a monitor. */
-    public static Thread start() {
-        for (int i = 0; i < 2; i++) daemon(FixtureApp::contend, "fixture-contention-" + i);
-        return daemon(FixtureApp::loop, "fixture-workload");
+    public static Workload start() {
+        final var threads = new ArrayList<Thread>();
+        threads.add(daemon(FixtureApp::loop, "fixture-workload"));
+        for (int i = 0; i < 2; i++) threads.add(daemon(FixtureApp::contend, "fixture-contention-" + i));
+        return new Workload(threads);
+    }
+
+    /** Handle over every workload thread: closing it interrupts and joins all of them. */
+    public static final class Workload implements AutoCloseable {
+        private final List<Thread> threads;
+
+        private Workload(List<Thread> threads) {
+            this.threads = List.copyOf(threads);
+        }
+
+        public void join() throws InterruptedException {
+            for (var thread : threads) thread.join();
+        }
+
+        public boolean isAlive() {
+            return threads.stream().anyMatch(Thread::isAlive);
+        }
+
+        @Override
+        public void close() throws InterruptedException {
+            threads.forEach(Thread::interrupt);
+            for (var thread : threads) thread.join(5_000);
+        }
     }
 
     private static Thread daemon(Runnable task, String name) {

@@ -31,7 +31,7 @@ public final class Pprof {
             final int field = (int) (key >>> 3);
             final int wire = (int) (key & 7);
             if (wire != 2) { in.skip(wire); continue; }
-            final int length = (int) in.varint();
+            final int length = in.length();
             final int start = in.pos;
             switch (field) {
                 case 1: valueTypes.add(valueType(new Reader(raw, start, start + length))); break; // sample_type
@@ -90,6 +90,7 @@ public final class Pprof {
         long varint() {
             long result = 0;
             for (int shift = 0; shift < 64; shift += 7) {
+                if (pos >= end) throw new IllegalArgumentException("truncated varint at " + pos);
                 final byte b = data[pos++];
                 result |= (long) (b & 0x7f) << shift;
                 if ((b & 0x80) == 0) return result;
@@ -97,12 +98,26 @@ public final class Pprof {
             throw new IllegalArgumentException("malformed varint");
         }
 
+        /** Reads a length prefix and checks that the delimited segment fits in the current message. */
+        int length() {
+            final long length = varint();
+            if (length < 0 || length > end - pos) {
+                throw new IllegalArgumentException("truncated field: length " + length + " at " + pos + ", end " + end);
+            }
+            return (int) length;
+        }
+
+        private void advance(int bytes) {
+            if (bytes > end - pos) throw new IllegalArgumentException("truncated field at " + pos);
+            pos += bytes;
+        }
+
         void skip(int wire) {
             switch (wire) {
                 case 0: varint(); break;
-                case 1: pos += 8; break;
-                case 2: pos += (int) varint(); break;
-                case 5: pos += 4; break;
+                case 1: advance(8); break;
+                case 2: { final int length = length(); pos += length; break; }
+                case 5: advance(4); break;
                 default: throw new IllegalArgumentException("unsupported wire type " + wire);
             }
         }

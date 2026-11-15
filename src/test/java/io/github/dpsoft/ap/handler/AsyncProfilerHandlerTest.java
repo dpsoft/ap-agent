@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assumptions.assumeTrue;
  */
 class AsyncProfilerHandlerTest {
     private static HttpServer server;
-    private static Thread workload;
+    private static FixtureApp.Workload workload;
     private static final HttpClient CLIENT = HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(5)).build();
 
     @BeforeAll
@@ -40,9 +40,9 @@ class AsyncProfilerHandlerTest {
     }
 
     @AfterAll
-    static void stopServer() {
+    static void stopServer() throws InterruptedException {
         if (server != null) server.stop(0);
-        if (workload != null) workload.interrupt();
+        if (workload != null) workload.close();
     }
 
     private static HttpResponse<byte[]> get(String pathAndQuery) throws IOException, InterruptedException {
