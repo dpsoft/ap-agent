@@ -36,10 +36,14 @@ java -cp "$(cat target/pw.cp)" scripts/assets/CheckLiveLinks.java integration/mo
 
 ## Releasing
 
-1. Set the release version in `pom.xml` (and in the docs, which show it in the download links).
-2. `mvn clean deploy` publishes the signed artifacts to Maven Central (needs the Central credentials and the GPG key).
-3. Run `CheckLiveLinks` against `main` (see above).
-4. Create a GitHub release with the tag `v<version>`: the `Release` workflow builds it again and attaches
-   `ap-agent-<version>.jar` and `ap-agent.jar` (for the `releases/latest/download/ap-agent.jar` link).
-5. Bump `ap-agent.baseline.version` in `pom.xml` to the new release and empty `EXPECTED_CHANGES` in
+1. Set the release version in `pom.xml` (and in the docs, which show it in the download links), and merge to `main`.
+2. Tag the merge commit and push the tag: `git tag -a v<version> -m "ap-agent <version>" && git push origin v<version>`.
+3. From the tag (`git checkout v<version>`), `mvn clean deploy` runs the tests, signs the artifacts with GPG and
+   publishes them to Maven Central (needs the Central Portal credentials, server `ossrh` in `~/.m2/settings.xml`,
+   and the signing key).
+4. Once Central shows the version as published, create the GitHub release on the existing tag
+   (`gh release create v<version> --verify-tag`): the `Release` workflow builds the tag again, checks that the pom
+   version matches it and attaches `ap-agent-<version>.jar` and `ap-agent.jar`.
+5. Run `CheckLiveLinks` against `main` (see above).
+6. Bump `ap-agent.baseline.version` in `pom.xml` to the new release and empty `EXPECTED_CHANGES` in
    `CompatibilityIT`: the next comparison starts from the new release, and every later difference must be declared.
