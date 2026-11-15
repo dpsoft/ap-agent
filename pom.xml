@@ -103,6 +103,10 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>${surefire.version}</version>
                 <configuration>
+                    <systemPropertyVariables>
+                        <!-- isolate temporary files of the test JVM (checked by the leak test) -->
+                        <java.io.tmpdir>${project.build.directory}</java.io.tmpdir>
+                    </systemPropertyVariables>
                     <!-- jacoco sets argLine; keep it and allow the native profiler library on JDK 22+ -->
                     <argLine>@{argLine} -XX:+IgnoreUnrecognizedVMOptions --enable-native-access=ALL-UNNAMED</argLine>
                 </configuration>

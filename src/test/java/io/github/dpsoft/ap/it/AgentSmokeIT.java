@@ -48,6 +48,17 @@ class AgentSmokeIT {
     }
 
     @Test
+    void tagFilterWithoutSpansReturns500() throws Exception {
+        try (var agent = AgentProcess.start(List.of(), List.of("--no-spans"))) {
+            final var response = agent.get("/profiler/profile?duration=1&output=pprof&tag=anything");
+            assertEquals(500, response.statusCode(), text(response.body()));
+            assertTrue(text(response.body()).startsWith("Conversion failed"), text(response.body()));
+            // the agent keeps serving afterwards
+            assertEquals(200, agent.get("/profiler/profile?duration=1&output=flame").statusCode());
+        }
+    }
+
+    @Test
     void bannerCanBeDisabled() throws Exception {
         try (var agent = AgentProcess.start("ap-agent.show-banner=false")) {
             assertFalse(agent.output().contains("Async Profiler Agent"), agent.output());

@@ -4,7 +4,6 @@ import io.github.dpsoft.ap.command.Command.GOProfileTypes;
 import io.github.dpsoft.ap.command.Command.Output;
 import io.github.dpsoft.ap.config.AgentConfiguration;
 import one.profiler.Events;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -57,15 +56,16 @@ class CommandTest {
         assertEquals(Duration.ofSeconds(5), command(Map.of("duration", "5", "seconds", "7")).getDuration());
     }
 
-    @Test
-    void invalidDurationCurrentlyThrows() {
-        assertThrows(NumberFormatException.class, () -> command(Map.of("duration", "abc")));
+    @ParameterizedTest
+    @CsvSource({"abc", "1O", "0", "-5", "''"})
+    void invalidDurationIsRejected(String value) {
+        final var error = assertThrows(IllegalArgumentException.class, () -> command(Map.of("duration", value)));
+        assertTrue(error.getMessage().contains("duration"), error.getMessage());
     }
 
     @Test
-    @Disabled("Known bug (phase 5, PR #57): an invalid duration should fall back to the default instead of failing")
-    void invalidDurationFallsBackToDefault() {
-        assertEquals(Duration.ofSeconds(30), command(Map.of("duration", "abc")).getDuration());
+    void durationIsTrimmed() {
+        assertEquals(Duration.ofSeconds(3), command(Map.of("seconds", " 3 ")).getDuration());
     }
 
     @Test
@@ -98,7 +98,7 @@ class CommandTest {
 
     @Test
     void invalidLatencyIsRejected() {
-        assertThrows(NumberFormatException.class, () -> command(Map.of("latency", "slow")));
+        assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "slow")));
         assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "-1")));
         assertThrows(IllegalArgumentException.class, () -> command(Map.of("latency", "9223372036855")));
         assertEquals(List.of("--latency", "9223372036854"), command(Map.of("latency", "9223372036854")).eventParams.toJavaList());
@@ -124,12 +124,6 @@ class CommandTest {
     }
 
     @Test
-    void pprofOutputCurrentlyIgnoresEventParameter() {
-        assertEquals(Events.CTIMER, command(Map.of("output", "pprof", "event", "nativemem")).eventType);
-    }
-
-    @Test
-    @Disabled("Known bug (phase 5): /profiler/profile?output=pprof must honour the event parameter")
     void pprofOutputHonoursEventParameter() {
         assertEquals("nativemem", command(Map.of("output", "pprof", "event", "nativemem")).eventType);
     }

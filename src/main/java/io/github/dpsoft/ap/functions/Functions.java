@@ -25,6 +25,7 @@ public final class Functions {
 
         for (String pair : pairs) {
             final int idx = pair.indexOf("=");
+            if (idx < 0) continue; // skip valueless params such as ?debug or empty pairs
             final var key = pair.substring(0, idx);
             final var value = pair.substring(idx + 1);
             queryPairs.put(decode(key), decode(value));
