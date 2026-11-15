@@ -38,8 +38,27 @@ final class AgentProcess implements AutoCloseable {
         return start(java.util.List.of(systemProperties), java.util.List.of());
     }
 
+    /** The current agent, with the async-profiler API on the application classpath (needed for spans). */
     static AgentProcess start(List<String> systemProperties, List<String> appArgs) throws Exception {
-        final var agentJar = requiredPath("ap-agent.it.jar");
+        return start(requiredPath("ap-agent.it.jar"), systemProperties, appArgs,
+                List.of(requiredPath("ap-agent.it.async-profiler-api")), true);
+    }
+
+    /** Any agent jar, with only the test classes (no extra jars) on the application classpath. */
+    static AgentProcess start(Path agentJar, List<String> systemProperties, List<String> appArgs) throws Exception {
+        return start(agentJar, systemProperties, appArgs, List.of(), true);
+    }
+
+    static Path requiredJar(String property) {
+        return requiredPath(property);
+    }
+
+    /**
+     * @param appClasspath  jars added to the application classpath after the test classes
+     * @param awaitStarted  wait for the agent server; otherwise only wait for the agent to finish its startup
+     */
+    static AgentProcess start(Path agentJar, List<String> systemProperties, List<String> appArgs,
+                              List<Path> appClasspath, boolean awaitStarted) throws Exception {
         final var testClasses = requiredPath("ap-agent.it.test-classes");
         final int port = freePort();
         final var java = Paths.get(System.getProperty("java.home"), "bin", "java").toString();
@@ -54,7 +73,9 @@ final class AgentProcess implements AutoCloseable {
         for (var property : systemProperties) command.add("-D" + property);
         command.add("-cp");
         // the application brings the async-profiler API (one.profiler.Span) itself, as documented for span filters
-        command.add(testClasses + File.pathSeparator + requiredPath("ap-agent.it.async-profiler-api"));
+        final var classpath = new StringBuilder(testClasses.toString());
+        for (var jar : appClasspath) classpath.append(File.pathSeparator).append(jar);
+        command.add(classpath.toString());
         command.add(FixtureApp.class.getName());
         command.addAll(appArgs);
 
@@ -68,7 +89,8 @@ final class AgentProcess implements AutoCloseable {
         }
         final var agent = new AgentProcess(process, log, port);
         try {
-            agent.awaitOutput(Duration.ofSeconds(60), STARTED, STARTUP_COMPLETED);
+            if (awaitStarted) agent.awaitOutput(Duration.ofSeconds(60), STARTED, STARTUP_COMPLETED);
+            else agent.awaitOutput(Duration.ofSeconds(60), STARTUP_COMPLETED);
             return agent;
         } catch (Exception | Error failure) {
             // start() never returns the AutoCloseable on failure, so the caller cannot clean up: do it here
@@ -109,6 +131,10 @@ final class AgentProcess implements AutoCloseable {
         }
         throw new IllegalStateException("Agent output did not contain " + java.util.Arrays.toString(markers)
                 + " within " + timeout + ":\n" + output());
+    }
+
+    boolean isAlive() {
+        return process.isAlive();
     }
 
     String output() throws IOException {
