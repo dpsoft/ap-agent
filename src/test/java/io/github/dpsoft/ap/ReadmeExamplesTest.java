@@ -60,6 +60,24 @@ class ReadmeExamplesTest {
     }
 
     @Test
+    void servletExampleServesGoProfiles() throws Exception {
+        final var servlet = new io.github.dpsoft.ap.examples.ProfilerServlet();
+        servlet.init();
+        for (var path : new String[][]{{"/debug/pprof/profile", "cpu"}, {"/debug/pprof/allocs", "allocations"}}) {
+            final var response = io.github.dpsoft.ap.examples.ServletFakesAccess.response();
+            io.github.dpsoft.ap.examples.ServletFakesAccess.get(servlet, path[0], java.util.Map.of("seconds", "1"), response);
+            assertEquals(200, io.github.dpsoft.ap.examples.ServletFakesAccess.status(response), path[0]);
+            assertEquals("gzip", io.github.dpsoft.ap.examples.ServletFakesAccess.header(response, "Content-Encoding"));
+            final var body = io.github.dpsoft.ap.examples.ServletFakesAccess.body(response);
+            assertEquals(java.util.List.of(path[1]), pprof(body).sampleTypes, path[0]);
+            assertEquals(String.valueOf(body.length), io.github.dpsoft.ap.examples.ServletFakesAccess.header(response, "Content-Length"));
+        }
+        final var invalid = io.github.dpsoft.ap.examples.ServletFakesAccess.response();
+        io.github.dpsoft.ap.examples.ServletFakesAccess.get(servlet, "/debug/pprof/profile", java.util.Map.of("seconds", "abc"), invalid);
+        assertEquals(400, io.github.dpsoft.ap.examples.ServletFakesAccess.status(invalid));
+    }
+
+    @Test
     void spanExampleRuns() {
         new OrderService().placeOrder("42");
     }

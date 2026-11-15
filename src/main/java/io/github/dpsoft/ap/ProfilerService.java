@@ -24,12 +24,14 @@ import java.util.concurrent.locks.ReentrantLock;
  * }
  * }</pre>
  *
- * Only one profiling session can run at a time per JVM; concurrent calls fail fast with {@link ProfilerBusyException}.
+ * Only one profiling session can run at a time per JVM, across every instance and the agent itself: concurrent calls
+ * fail fast with {@link ProfilerBusyException}.
  */
 public final class ProfilerService {
     private final AsyncProfiler profiler;
     private final AgentConfiguration configuration;
-    private final ReentrantLock session = new ReentrantLock();
+    /** Async Profiler is one per JVM: every service instance (and the agent) shares this session lock. */
+    private static final ReentrantLock SESSION = new ReentrantLock();
 
     ProfilerService(AsyncProfiler profiler, AgentConfiguration configuration) {
         this.profiler = profiler;
@@ -60,8 +62,13 @@ public final class ProfilerService {
      */
     public Profile profile(String path, Map<String, String> queryParams) throws IOException {
         final var command = Command.from(Functions.lastSegment(path), queryParams, configuration);
-        final var executor = ProfilerExecutor.with(profiler, command);
-        if (!session.tryLock()) {
+        final ProfilerExecutor executor;
+        try {
+            executor = ProfilerExecutor.with(profiler, command);
+        } catch (java.io.UncheckedIOException e) { // the temporary recording file could not be created
+            throw e.getCause();
+        }
+        if (!SESSION.tryLock()) {
             executor.discard();
             throw new ProfilerBusyException();
         }
@@ -81,7 +88,7 @@ public final class ProfilerService {
                 throw new IOException("Conversion failed: " + e.getMessage(), e);
             }
         } finally {
-            session.unlock();
+            SESSION.unlock();
         }
     }
 

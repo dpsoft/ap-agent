@@ -12,7 +12,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Serves /debug/pprof/profile, /debug/pprof/allocs, /debug/pprof/block... from your own application. */
+/** Serves /debug/pprof/profile, /debug/pprof/allocs and /debug/pprof/block from your own application. */
 public class ProfilerServlet extends HttpServlet {
     private ProfilerService profiler;
 
@@ -29,6 +29,7 @@ public class ProfilerServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Map<String, String> params = new HashMap<>();
         request.getParameterMap().forEach((name, values) -> params.put(name, values[values.length - 1]));
+        params.putIfAbsent("output", "pprof"); // Go tools expect pprof; the path picks cpu, allocations or locks
 
         try (var profile = profiler.profile(request.getRequestURI(), params)) {
             response.setContentType(profile.contentType());

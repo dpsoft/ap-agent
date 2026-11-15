@@ -26,4 +26,5 @@ The project targets Java 11 (`--release 11`); CI builds on JDK 11, 17, 21 and 25
 2. `mvn clean deploy` publishes the signed artifacts to Maven Central (needs the Central credentials and the GPG key).
 3. Create a GitHub release with the tag `v<version>`: the `Release` workflow builds it again and attaches
    `ap-agent-<version>.jar` and `ap-agent.jar` (for the `releases/latest/download/ap-agent.jar` link).
-4. Bump `ap-agent.baseline.version` in `pom.xml` to the new release, so `CompatibilityIT` compares against it.
+4. Bump `ap-agent.baseline.version` in `pom.xml` to the new release and empty `EXPECTED_CHANGES` in
+   `CompatibilityIT`: the next comparison starts from the new release, and every later difference must be declared.

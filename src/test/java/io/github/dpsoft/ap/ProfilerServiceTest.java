@@ -80,6 +80,24 @@ class ProfilerServiceTest {
     }
 
     @Test
+    void sessionsAreExclusiveAcrossServiceInstances() throws Exception {
+        final var other = ProfilerService.create();
+        final var pool = Executors.newSingleThreadExecutor();
+        try {
+            final var first = pool.submit(() -> {
+                try (var profile = profiler.profile("/profiler/profile", Map.of("duration", "2"))) {
+                    return profile.size();
+                }
+            });
+            Thread.sleep(500);
+            assertThrows(ProfilerBusyException.class, () -> other.profile("/profiler/profile", Map.of("duration", "1")));
+            assertTrue(first.get(30, TimeUnit.SECONDS) > 0);
+        } finally {
+            pool.shutdownNow();
+        }
+    }
+
+    @Test
     void concurrentSessionsFailFast() throws Exception {
         final var pool = Executors.newSingleThreadExecutor();
         final var started = new CountDownLatch(1);

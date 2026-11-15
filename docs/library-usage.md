@@ -18,6 +18,7 @@ import com.sun.net.httpserver.HttpServer;
 import io.github.dpsoft.ap.ProfilerService;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
 
 public class EmbeddedServerExample {
     public static HttpServer start(int port) throws Exception {
@@ -25,6 +26,7 @@ public class EmbeddedServerExample {
 
         HttpServer server = HttpServer.create(new InetSocketAddress("127.0.0.1", port), 0);
         server.createContext("/profiler/profile", profiler.httpHandler());
+        server.setExecutor(Executors.newCachedThreadPool()); // concurrent requests get a 409 instead of waiting
         server.start();
         return server;
     }
@@ -45,7 +47,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
-/** Serves /debug/pprof/profile, /debug/pprof/allocs, /debug/pprof/block... from your own application. */
+/** Serves /debug/pprof/profile, /debug/pprof/allocs and /debug/pprof/block from your own application. */
 public class ProfilerServlet extends HttpServlet {
     private ProfilerService profiler;
 
@@ -62,6 +64,7 @@ public class ProfilerServlet extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
         Map<String, String> params = new HashMap<>();
         request.getParameterMap().forEach((name, values) -> params.put(name, values[values.length - 1]));
+        params.putIfAbsent("output", "pprof"); // Go tools expect pprof; the path picks cpu, allocations or locks
 
         try (var profile = profiler.profile(request.getRequestURI(), params)) {
             response.setContentType(profile.contentType());
@@ -78,4 +81,6 @@ public class ProfilerServlet extends HttpServlet {
 ```
 
 `ProfilerService`, `Profile` and `ProfilerBusyException` (package `io.github.dpsoft.ap`) are the supported API; the
-other classes are internal and may change. These examples are compiled and run by the test suite.
+other classes are internal and may change. Async Profiler records one session per JVM: while one runs, other calls
+fail fast with `ProfilerBusyException` (also across several `ProfilerService` instances and the agent). These
+examples are compiled and run by the test suite.

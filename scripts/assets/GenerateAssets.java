@@ -77,7 +77,7 @@ public class GenerateAssets {
         throw new IllegalStateException("the agent did not start:\n" + Files.readString(log));
     }
 
-    /** Saves a flame graph with a descriptive title (the converter's --title option is not usable here). */
+    /** Saves a flame graph with a descriptive title, set on the saved HTML to keep the request URLs readable. */
     static void flame(String url, Path target, String title) throws Exception {
         save(url, target);
         final var html = Files.readString(target, StandardCharsets.UTF_8);
