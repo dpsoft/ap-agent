@@ -20,7 +20,12 @@ class StrSubstitutorTest {
     }
 
     @Test
-    void unknownVariableCurrentlyThrows() {
-        assertThrows(NullPointerException.class, () -> new StrSubstitutor(Map.of()).replace("${missing}"));
+    void unknownVariablesAreLeftUntouched() {
+        assertEquals("a ${missing} b", new StrSubstitutor(Map.of()).replace("a ${missing} b"));
+    }
+
+    @Test
+    void replacementsAreLiteral() {
+        assertEquals("cost: $5 \\ ok", new StrSubstitutor(Map.of("v", "$5 \\")).replace("cost: ${v} ok"));
     }
 }

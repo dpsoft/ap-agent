@@ -51,15 +51,29 @@ public class Command {
                 .getOrElse(Output.JFR);
     }
 
+    /**
+     * An explicit {@code event} always wins. Without it, pprof output follows the Go endpoint naming
+     * (profile -> cpu, allocs -> alloc, block -> lock) and everything else profiles CPU.
+     */
     private static String getEventType(String segment, Map<String, String> params, Output output) {
+        final var event = params.get("event");
+        if (event != null && !event.isEmpty()) return event;
         if (Output.PPROF == output) return GOProfileTypes.get(segment).getOrElse(GOProfileTypes.PROFILE).event();
-        return params.getOrDefault("event", Events.CTIMER);
+        return Events.CTIMER;
     }
 
     private static Duration getDuration(Map<String, String> params) {
-        if (params.get("duration") != null) return Duration.ofSeconds(Long.parseLong(params.get("duration")));
-        if (params.get("seconds") != null) return Duration.ofSeconds(Long.parseLong(params.get("seconds")));
-        return Duration.ofSeconds(30); // default value
+        var raw = params.get("duration");
+        if (raw == null) raw = params.get("seconds");
+        if (raw == null) return Duration.ofSeconds(30); // default value
+        final long seconds;
+        try {
+            seconds = Long.parseLong(raw.trim());
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException("duration must be a number of seconds: " + raw);
+        }
+        if (seconds <= 0) throw new IllegalArgumentException("duration must be > 0 seconds: " + raw);
+        return Duration.ofSeconds(seconds);
     }
 
     private static List<String> getEventParams(Map<String, String> parameters) {
@@ -86,7 +100,12 @@ public class Command {
         if (tag != null && !tag.isEmpty()) filters = filters.appendAll(List.of("--tag", tag));
         final var latency = parameters.get("latency");
         if (latency != null && !latency.isEmpty()) {
-            final long millis = Long.parseLong(latency);
+            final long millis;
+            try {
+                millis = Long.parseLong(latency.trim());
+            } catch (NumberFormatException e) {
+                throw new IllegalArgumentException("latency must be a number of milliseconds: " + latency);
+            }
             // the converter works in nanoseconds: reject values that would overflow and silently disable the filter
             if (millis < 0 || millis > Long.MAX_VALUE / 1_000_000) {
                 throw new IllegalArgumentException("latency must be between 0 and " + Long.MAX_VALUE / 1_000_000 + " ms: " + latency);

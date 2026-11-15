@@ -7,7 +7,6 @@ import io.github.dpsoft.ap.testing.FixtureApp;
 import one.profiler.AsyncProfilerLoader;
 import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeAll;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
@@ -60,7 +59,9 @@ class AsyncProfilerHandlerTest {
 
     @Test
     void unknownPathReturns404() throws Exception {
-        assertEquals(404, get("/nope").statusCode());
+        final var response = get("/nope");
+        assertEquals(404, response.statusCode());
+        assertEquals("Not found: /nope\n", text(response.body()));
         assertEquals(404, get("/debug/pprof/profile").statusCode(), "go endpoints are disabled by default");
     }
 
@@ -200,57 +201,58 @@ class AsyncProfilerHandlerTest {
     }
 
     @Test
-    void responseCurrentlyLacksContentEncodingHeader() throws Exception {
-        assertTrue(profile("output=jfr").headers().firstValue("Content-Encoding").isEmpty());
-    }
-
-    @Test
-    @Disabled("Known bug (phase 5): Content-Encoding is set after sendResponseHeaders and never reaches the client")
     void compressedResponsesDeclareContentEncoding() throws Exception {
-        assertEquals("gzip", profile("output=jfr").headers().firstValue("Content-Encoding").orElse(null));
-        assertEquals("gzip", profile("output=pprof").headers().firstValue("Content-Encoding").orElse(null));
+        for (var output : new String[]{"jfr", "pprof"}) {
+            final var response = profile("output=" + output);
+            assertEquals("gzip", response.headers().firstValue("Content-Encoding").orElse(null), output);
+            assertEquals("application/octet-stream", response.headers().firstValue("Content-Type").orElse(null), output);
+        }
+        final var flame = profile("output=flame");
+        assertTrue(flame.headers().firstValue("Content-Encoding").isEmpty());
+        assertEquals("text/html; charset=utf-8", flame.headers().firstValue("Content-Type").orElse(null));
     }
 
     @Test
-    void collapsedOutputCurrentlyReturnsGzippedJfr() throws Exception {
-        assertTrue(isJfr(gunzip(profile("output=collapsed").body())));
-    }
-
-    @Test
-    @Disabled("Known bug (phase 5): output=collapsed must return collapsed stacks, not the JFR recording")
     void collapsedOutputReturnsCollapsedStacks() throws Exception {
-        final var body = profile("output=collapsed").body();
-        final var text = text(isGzip(body) ? gunzip(body) : body);
-        assertTrue(text.lines().anyMatch(line -> line.matches(".+;.+ \\d+")), text);
+        final var response = profile("output=collapsed");
+        assertEquals(200, response.statusCode());
+        assertEquals("text/plain; charset=utf-8", response.headers().firstValue("Content-Type").orElse(null));
+        assertFalse(isGzip(response.body()));
+        final var text = text(response.body());
+        assertTrue(text.lines().anyMatch(line -> line.matches(".+;.+ \\d+") && line.contains("FixtureApp")), text);
     }
 
     @Test
-    @Disabled("Known bug (phase 5): /profiler/profile?output=pprof ignores the event parameter and always records CPU")
     void pprofOutputHonoursEvent() throws Exception {
         final var profile = pprof(profile("output=pprof&event=nativemem").body());
         assertEquals(java.util.List.of("malloc"), profile.sampleTypes, profile.toString());
+        assertTrue(profile.samples > 0, profile.toString());
     }
 
     @Test
-    void invalidDurationCurrentlyReturnsOkWithEmptyBody() throws Exception {
-        // sendResponseHeaders(200) happens before the command is parsed; the failure is only visible as an empty body
-        assertThrowsOrEmpty(() -> get("/profiler/profile?duration=abc"));
+    void wallClockProfilesAreNotEmpty() throws Exception {
+        assertTrue(flameRootTotal(text(profile("event=wall&output=flame").body())) > 0);
+        assertTrue(pprof(profile("event=wall&output=pprof").body()).samples > 0);
     }
 
-    private static void assertThrowsOrEmpty(ThrowingSupplier call) {
-        try {
-            final var response = call.get();
-            assertEquals(200, response.statusCode());
-            assertEquals(0, response.body().length);
-        } catch (IOException e) {
-            // the connection may also be dropped by the server: acceptable for the current behaviour
-        } catch (Exception e) {
-            fail(e);
+    @Test
+    void invalidParametersReturn400() throws Exception {
+        for (var query : new String[]{"duration=abc", "duration=0", "latency=slow"}) {
+            final var response = get("/profiler/profile?" + query);
+            assertEquals(400, response.statusCode(), query);
+            assertTrue(text(response.body()).startsWith("Invalid parameter"), query + ": " + text(response.body()));
         }
     }
 
-    @FunctionalInterface
-    private interface ThrowingSupplier {
-        HttpResponse<byte[]> get() throws Exception;
+    @Test
+    void profilerFailureReturns500() throws Exception {
+        final var response = profile("event=lock&interval=0");
+        assertEquals(500, response.statusCode(), text(response.body()));
+        assertTrue(text(response.body()).startsWith("Profiling failed"), text(response.body()));
+    }
+
+    @Test
+    void valuelessQueryParametersAreIgnored() throws Exception {
+        assertEquals(200, get("/profiler/profile?debug&duration=1&output=flame").statusCode());
     }
 }

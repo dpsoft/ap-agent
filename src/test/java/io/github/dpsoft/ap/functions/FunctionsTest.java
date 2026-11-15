@@ -1,6 +1,5 @@
 package io.github.dpsoft.ap.functions;
 
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.net.URI;
@@ -68,16 +67,14 @@ class FunctionsTest {
     }
 
     @Test
-    @Disabled("Known bug (phase 5, PR #57): a parameter without '=' throws StringIndexOutOfBoundsException")
     void splitQueryParamsToleratesParameterWithoutValue() {
         final var params = Functions.splitQueryParams(URI.create("http://h/p?debug&event=cpu"));
         assertEquals("cpu", params.get("event"));
     }
 
     @Test
-    void splitQueryParamsCurrentlyFailsOnParameterWithoutValue() {
-        assertThrows(StringIndexOutOfBoundsException.class,
-                () -> Functions.splitQueryParams(URI.create("http://h/p?debug")));
+    void splitQueryParamsSkipsEmptyPairs() {
+        assertEquals(Map.of("a", "1", "b", "2"), Functions.splitQueryParams(URI.create("http://h/p?a=1&&b=2&")));
     }
 
     @Test

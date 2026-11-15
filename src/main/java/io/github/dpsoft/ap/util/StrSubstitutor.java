@@ -1,6 +1,7 @@
 package io.github.dpsoft.ap.util;
 
 import java.util.Map;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -19,8 +20,8 @@ public final class StrSubstitutor {
         final var sb = new StringBuilder();
         while (m.find()) {
             final var var = m.group(1);
-            final var replacement = map.get(var);
-            m.appendReplacement(sb, replacement);
+            final var replacement = map.getOrDefault(var, m.group()); // unknown variables are left untouched
+            m.appendReplacement(sb, Matcher.quoteReplacement(replacement));
         }
         m.appendTail(sb);
         return sb.toString();

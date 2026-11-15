@@ -11,6 +11,7 @@ import org.tinylog.Logger;
 
 import java.io.IOException;
 import java.net.HttpURLConnection;
+import java.nio.charset.StandardCharsets;
 
 public class AsyncProfilerHandler implements HttpHandler {
     private final AsyncProfiler asyncProfiler;
@@ -21,30 +22,64 @@ public class AsyncProfilerHandler implements HttpHandler {
         this.configuration = configuration;
     }
 
+    /**
+     * Status codes: 404 for unknown paths, 400 for invalid parameters, 500 when the profiler cannot record.
+     * The 200 headers are only sent once the recording succeeded, right before streaming the converted profile.
+     */
     @Override
     public void handle(HttpExchange exchange) throws IOException {
-        final var path = exchange.getRequestURI().getPath();
-
-        if(!configuration.handler.context().contains(path)) {
-            exchange.sendResponseHeaders(HttpURLConnection.HTTP_NOT_FOUND, 0L);
-            exchange.close();
-        } else {
+        try {
+            final var path = exchange.getRequestURI().getPath();
             exchange.getRequestBody().close();
+
+            if (!configuration.handler.context().contains(path)) {
+                sendText(exchange, HttpURLConnection.HTTP_NOT_FOUND, "Not found: " + path);
+                return;
+            }
+
+            final Command command;
+            try {
+                command = Command.from(Functions.lastSegment(path), Functions.splitQueryParams(exchange.getRequestURI()), configuration);
+            } catch (IllegalArgumentException invalid) {
+                sendText(exchange, HttpURLConnection.HTTP_BAD_REQUEST, "Invalid parameter: " + invalid.getMessage());
+                return;
+            }
+
+            final var recording = ProfilerExecutor.with(asyncProfiler, command).run();
+            if (recording.isFailure()) {
+                final var cause = recording.getCause();
+                Logger.error(cause, "It has not been possible to execute the profiler command.");
+                sendText(exchange, HttpURLConnection.HTTP_INTERNAL_ERROR, "Profiling failed: " + cause.getMessage());
+                return;
+            }
+
+            final var headers = exchange.getResponseHeaders();
+            headers.set("Content-Type", contentType(command.output));
+            if (command.shouldCompress()) headers.set("Content-Encoding", "gzip");
             exchange.sendResponseHeaders(HttpURLConnection.HTTP_OK, 0);
+            recording.get().pipeTo(exchange.getResponseBody());
+        } finally {
+            exchange.close();
+        }
+    }
 
-            final var queryParamsMap = Functions.splitQueryParams(exchange.getRequestURI());
-            final var operation = Functions.lastSegment(path);
-            final var command = Command.from(operation, queryParamsMap, configuration);
+    private static String contentType(Command.Output output) {
+        if (output == null) return "application/octet-stream";
+        switch (output) {
+            case FLAME:
+            case FLAME_GRAPH:
+            case HEATMAP: return "text/html; charset=utf-8";
+            case COLLAPSED: return "text/plain; charset=utf-8";
+            default: return "application/octet-stream";
+        }
+    }
 
-            if(command.shouldCompress()) exchange.getResponseHeaders().set("Content-Encoding", "gzip");
-
-            ProfilerExecutor
-                    .with(asyncProfiler, command)
-                    .run()
-                    .onSuccess(result -> result.pipeTo(exchange.getResponseBody()))
-                    .onFailure(cause -> Logger.error(cause, "It has not been possible to execute the profiler command."))
-                    .andFinally(exchange::close);
+    private static void sendText(HttpExchange exchange, int status, String message) throws IOException {
+        final var body = (message + "\n").getBytes(StandardCharsets.UTF_8);
+        exchange.getResponseHeaders().set("Content-Type", "text/plain; charset=utf-8");
+        exchange.sendResponseHeaders(status, body.length);
+        try (var out = exchange.getResponseBody()) {
+            out.write(body);
         }
     }
 }
-
