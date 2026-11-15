@@ -62,17 +62,15 @@ public final class ProfilerService {
      */
     public Profile profile(String path, Map<String, String> queryParams) throws IOException {
         final var command = Command.from(Functions.lastSegment(path), queryParams, configuration);
-        final ProfilerExecutor executor;
+        // take the session before allocating anything: a busy request must not create (or register) a recording file
+        if (!SESSION.tryLock()) throw new ProfilerBusyException();
         try {
-            executor = ProfilerExecutor.with(profiler, command);
-        } catch (java.io.UncheckedIOException e) { // the temporary recording file could not be created
-            throw e.getCause();
-        }
-        if (!SESSION.tryLock()) {
-            executor.discard();
-            throw new ProfilerBusyException();
-        }
-        try {
+            final ProfilerExecutor executor;
+            try {
+                executor = ProfilerExecutor.with(profiler, command); // IllegalArgumentException: converter options
+            } catch (java.io.UncheckedIOException e) { // the temporary recording file could not be created
+                throw e.getCause();
+            }
             try {
                 executor.run();
             } catch (java.io.InterruptedIOException interrupted) {

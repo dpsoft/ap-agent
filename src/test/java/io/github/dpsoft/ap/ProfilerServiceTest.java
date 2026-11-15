@@ -79,6 +79,12 @@ class ProfilerServiceTest {
         assertTrue(failure.getMessage().startsWith("Profiling failed"), failure.getMessage());
     }
 
+    private static long recordingFiles() throws IOException {
+        try (var files = java.nio.file.Files.list(java.nio.file.Paths.get(System.getProperty("java.io.tmpdir")))) {
+            return files.filter(f -> f.getFileName().toString().startsWith("ap-agent") && f.toString().endsWith(".jfr")).count();
+        }
+    }
+
     @Test
     void sessionsAreExclusiveAcrossServiceInstances() throws Exception {
         final var other = ProfilerService.create();
@@ -110,8 +116,12 @@ class ProfilerServiceTest {
             });
             started.await();
             Thread.sleep(500); // let the first session start recording
+            final long files = recordingFiles();
             final long start = System.nanoTime();
             assertThrows(ProfilerBusyException.class, () -> profiler.profile("/profiler/profile", Map.of("duration", "1")));
+            assertEquals(files, recordingFiles(), "a busy request must not allocate a recording file");
+            // invalid parameters are still reported as such while busy
+            assertThrows(IllegalArgumentException.class, () -> profiler.profile("/profiler/profile", Map.of("duration", "abc")));
             assertTrue(TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - start) < 1_000, "must not wait for the running session");
             assertTrue(first.get(30, TimeUnit.SECONDS) > 0, "the running session is not affected");
         } finally {

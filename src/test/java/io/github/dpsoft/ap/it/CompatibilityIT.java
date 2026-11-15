@@ -153,6 +153,12 @@ class CompatibilityIT {
         return shapes;
     }
 
+    /** JFR events that are profiling samples (not bookkeeping such as profiler.Log or profiler.Window). */
+    private static final java.util.Set<String> SAMPLE_EVENTS = java.util.Set.of(
+            "jdk.ExecutionSample", "jdk.NativeMethodSample", "profiler.WallClockSample",
+            "jdk.ObjectAllocationInNewTLAB", "jdk.ObjectAllocationOutsideTLAB", "jdk.ObjectAllocationSample",
+            "jdk.JavaMonitorEnter", "jdk.ThreadPark", "profiler.Malloc", "profiler.LiveObject");
+
     /** A version-independent description of a response, e.g. "200 pprof[cpu] samples" or "400 text". */
     static String shape(AgentProcess agent, String request) throws Exception {
         final HttpResponse<byte[]> response;
@@ -167,7 +173,7 @@ class CompatibilityIT {
         if (isGzip(body)) {
             final var raw = gunzip(body);
             if (raw.length == 0) return status + "gzip-empty";
-            if (isJfr(raw)) return status + "jfr.gz " + (jfrEventCounts(raw).keySet().stream().anyMatch(e -> e.endsWith("Sample") || e.startsWith("profiler.")) ? "samples" : "empty");
+            if (isJfr(raw)) return status + "jfr.gz " + (jfrEventCounts(raw).keySet().stream().anyMatch(SAMPLE_EVENTS::contains) ? "samples" : "empty");
             final Pprof pprof = Pprof.parse(raw);
             return status + "pprof" + pprof.sampleTypes + " " + (pprof.samples > 0 ? "samples" : "empty");
         }

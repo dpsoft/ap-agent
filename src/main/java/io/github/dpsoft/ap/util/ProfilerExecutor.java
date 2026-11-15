@@ -38,8 +38,8 @@ public final class ProfilerExecutor {
         this.command = command;
         this.arguments = getArguments(command);
         try {
+            // no deleteOnExit(): every path deletes the file, and the JVM would keep each registered path forever
             this.file = File.createTempFile("ap-agent", ".jfr");
-            this.file.deleteOnExit();
         } catch (IOException e) {
             throw new UncheckedIOException("It has not been possible to create a temporal file for JFR.", e);
         }
@@ -90,11 +90,6 @@ public final class ProfilerExecutor {
         } finally {
             file.delete();
         }
-    }
-
-    /** Deletes the temporary recording of an executor that will not run. */
-    public void discard() {
-        file.delete();
     }
 
     /** Converts the recording straight into {@code out} (library use); failures are logged. */
