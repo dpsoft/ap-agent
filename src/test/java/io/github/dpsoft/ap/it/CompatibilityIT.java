@@ -83,12 +83,17 @@ class CompatibilityIT {
         final var dir = Paths.get(System.getProperty("ap-agent.it.baseline-dir"));
         Files.createDirectories(dir);
         baselineJar = dir.resolve("ap-agent-" + BASELINE + ".jar");
-        final var client = java.net.http.HttpClient.newBuilder().followRedirects(java.net.http.HttpClient.Redirect.NORMAL).build();
-        final var expectedSha1 = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + ".sha1")).build(),
-                HttpResponse.BodyHandlers.ofString()).body().trim().split("\\s+")[0];
+        final var client = java.net.http.HttpClient.newBuilder()
+                .connectTimeout(java.time.Duration.ofSeconds(20))
+                .followRedirects(java.net.http.HttpClient.Redirect.NORMAL).build();
+        final var checksum = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base + ".sha1"))
+                .timeout(java.time.Duration.ofSeconds(30)).build(), HttpResponse.BodyHandlers.ofString());
+        assertEquals(200, checksum.statusCode(), "download of " + base + ".sha1");
+        final var expectedSha1 = checksum.body().trim().split("\\s+")[0];
+        assertTrue(expectedSha1.matches("[0-9a-f]{40}"), "unexpected checksum file: " + checksum.body());
         if (!Files.exists(baselineJar) || !sha1(baselineJar).equals(expectedSha1)) {
-            final var download = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base)).build(),
-                    HttpResponse.BodyHandlers.ofFile(baselineJar));
+            final var download = client.send(java.net.http.HttpRequest.newBuilder(java.net.URI.create(base))
+                    .timeout(java.time.Duration.ofMinutes(2)).build(), HttpResponse.BodyHandlers.ofFile(baselineJar));
             assertEquals(200, download.statusCode(), "download of " + base);
         }
         assertEquals(expectedSha1, sha1(baselineJar), "the baseline jar must be the one published on Maven Central");
